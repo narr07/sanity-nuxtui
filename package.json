@@ -1,0 +1,17 @@
+{
+  "name": "sanity-nuxtui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --parallel --filter web --filter studio dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:studio": "pnpm --filter studio dev",
+    "build": "pnpm --filter studio build && pnpm --filter web build",
+    "typegen": "pnpm --filter studio typegen",
+    "lint": "pnpm --filter web lint",
+    "typecheck": "pnpm --filter web typecheck",
+    "seed": "pnpm --filter studio seed",
+    "deploy:studio": "pnpm --filter studio run deploy"
+  },
+  "packageManager": "pnpm@12.4.2"
+}
