@@ -20,8 +20,7 @@ export const pageBuilder = defineType({
     defineArrayMember({ type: 'pricing' }),
     defineArrayMember({ type: 'cta' }),
     defineArrayMember({ type: 'callout' }),
-    defineArrayMember({ type: 'postList' }),
-    defineArrayMember({ type: 'galleryList' })
+    defineArrayMember({ type: 'collectionList' })
   ],
   options: {
     insertMenu: {
@@ -31,7 +30,7 @@ export const pageBuilder = defineType({
         { name: 'content', title: 'Content', of: ['section', 'cardGrid', 'timeline', 'imageGallery', 'richText'] },
         { name: 'social-proof', title: 'Social proof', of: ['testimonials', 'faq'] },
         { name: 'conversion', title: 'Conversion', of: ['pricing', 'cta', 'callout'] },
-        { name: 'dynamic', title: 'Dynamic lists', of: ['postList', 'galleryList'] }
+        { name: 'dynamic', title: 'Dynamic lists', of: ['collectionList'] }
       ],
       views: [{ name: 'list' }, { name: 'grid' }]
     }

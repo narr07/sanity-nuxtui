@@ -17,8 +17,8 @@ export function usePageSeo(input: MaybeRefOrGetter<PageSeoInput>) {
   const seo = computed(() => toValue(input))
 
   useSeoMeta({
-    title: () => seo.value.title ?? undefined,
-    description: () => seo.value.description ?? undefined,
+    title: () => seo.value.title || undefined,
+    description: () => seo.value.description || undefined,
     ogType: () => seo.value.type ?? 'website',
     ogImage: () => seo.value.image?.asset
       ? urlFor(seo.value.image).width(1200).height(630).fit('crop').url()

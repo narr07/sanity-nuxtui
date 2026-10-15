@@ -11,6 +11,15 @@ const siteTitle = computed(() => stegaClean(settings.value?.title) || siteConfig
 const urlFor = useSanityImage()
 const route = useRoute()
 
+// Every URL is served by the same catch-all route, so the router would mark any
+// internal link as active. Decide it from the path instead: "/" only on the
+// homepage, "/blog" on /blog and /blog/<entry>, anchors and external links never.
+function isActive(to: string | undefined) {
+  if (!to || !to.startsWith('/') || to.includes('#') || to.includes('?')) return false
+  if (to === '/') return route.path === '/'
+  return route.path === to || route.path.startsWith(`${to}/`)
+}
+
 const navigation = computed<NavigationMenuItem[]>(() => (settings.value?.navigation ?? []).map((link) => {
   const to = stegaClean(link.to) ?? undefined
   return {
@@ -18,18 +27,21 @@ const navigation = computed<NavigationMenuItem[]>(() => (settings.value?.navigat
     to,
     target: link.newTab ? '_blank' : undefined,
     icon: stegaClean(link.icon) ?? undefined,
-    // Keep "Blog" active on /blog/my-post, but not "Home" on every page
-    active: to && to !== '/' && !to.includes('#') ? route.path.startsWith(to) : undefined
+    active: isActive(to)
   }
 }))
 
 const footerColumns = computed<FooterColumn[]>(() => (settings.value?.footerColumns ?? []).map(column => ({
   label: column.label,
-  children: (column.links ?? []).map(link => ({
-    label: link.label ?? '',
-    to: stegaClean(link.to) ?? undefined,
-    target: link.newTab ? '_blank' : undefined
-  }))
+  children: (column.links ?? []).map((link) => {
+    const to = stegaClean(link.to) ?? undefined
+    return {
+      label: link.label ?? '',
+      to,
+      target: link.newTab ? '_blank' : undefined,
+      active: isActive(to)
+    }
+  })
 })))
 
 useHead({
@@ -43,8 +55,7 @@ useSeoMeta({
   ogSiteName: siteTitle,
   ogImage: () => settings.value?.ogImage?.asset
     ? urlFor(settings.value.ogImage).width(1200).height(630).fit('crop').url()
-    : undefined,
-  twitterCard: 'summary_large_image'
+    : undefined
 })
 </script>
 
@@ -58,7 +69,10 @@ useSeoMeta({
           :alt="siteTitle"
           class="h-7 w-auto"
         >
-        <span v-else>{{ siteTitle }}</span>
+        <span
+          v-else
+          class="font-heading"
+        >{{ siteTitle }}</span>
       </template>
 
       <UNavigationMenu :items="navigation" />

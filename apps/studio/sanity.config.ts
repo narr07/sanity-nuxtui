@@ -29,7 +29,19 @@ export default defineConfig({
   ],
 
   schema: {
-    types: schemaTypes
+    types: schemaTypes,
+    templates: prev => [
+      ...prev,
+      {
+        id: 'entry-in-collection',
+        title: 'Entry in collection',
+        schemaType: 'entry',
+        parameters: [{ name: 'collectionId', type: 'string' }],
+        value: ({ collectionId }: { collectionId: string }) => ({
+          collection: { _type: 'reference', _ref: collectionId }
+        })
+      }
+    ]
   },
 
   document: {

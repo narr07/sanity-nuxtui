@@ -1,18 +1,43 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-@theme static {
-  --font-sans: 'Public Sans', sans-serif;
+@theme {
+  --font-sans: 'Funnel Sans', sans-serif;
+  --font-heading: 'Funnel Display', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
 
-  --color-green-50: #EFFDF5;
-  --color-green-100: #D9FBE8;
-  --color-green-200: #B3F5D1;
-  --color-green-300: #75EDAE;
-  --color-green-400: #00DC82;
-  --color-green-500: #00C16A;
-  --color-green-600: #00A155;
-  --color-green-700: #007F45;
-  --color-green-800: #016538;
-  --color-green-900: #0A5331;
-  --color-green-950: #052E16;
+@theme static {
+  --color-swiss-50: oklch(97% 0.015 33);
+  --color-swiss-100: oklch(94% 0.035 33);
+  --color-swiss-200: oklch(88% 0.075 33);
+  --color-swiss-300: oklch(80% 0.13 33);
+  --color-swiss-400: oklch(72% 0.2 33);
+  --color-swiss-500: oklch(63.5% 0.245 33);
+  --color-swiss-600: oklch(56% 0.225 32);
+  --color-swiss-700: oklch(48% 0.195 31);
+  --color-swiss-800: oklch(40% 0.16 30);
+  --color-swiss-900: oklch(34% 0.125 30);
+  --color-swiss-950: oklch(24% 0.09 30);
+}
+
+:root {
+  --ui-radius: 0rem;
+}
+
+/* `<html>` is :root in both modes, so dark mode must redefine every variable set here */
+:root, .light {
+  --ui-border: var(--ui-color-neutral-300);
+  --ui-text-highlighted: var(--ui-color-neutral-950);
+}
+
+.dark {
+  --ui-border: var(--ui-color-neutral-700);
+  --ui-text-highlighted: var(--color-white);
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
 }

@@ -3,13 +3,12 @@ import type { Component } from 'vue'
 import {
   LazyBlockCallout,
   LazyBlockCardGrid,
+  LazyBlockCollectionList,
   LazyBlockCta,
   LazyBlockFaq,
-  LazyBlockGalleryList,
   LazyBlockHero,
   LazyBlockImageGallery,
   LazyBlockLogos,
-  LazyBlockPostList,
   LazyBlockPricing,
   LazyBlockRichText,
   LazyBlockSection,
@@ -18,11 +17,15 @@ import {
 } from '#components'
 import type { BlockType, PageBlock } from '~/types/sanity'
 
-defineProps<{
+withDefaults(defineProps<{
   blocks: PageBlock[] | null | undefined
   /** From useSanityQuery; makes blocks clickable and sortable in the Presentation tool */
   encodeDataAttribute?: (path: (string | number | { _key: string })[]) => unknown
-}>()
+  /** Where `blocks` sits in the query result, e.g. ['page'] */
+  basePath?: string[]
+}>(), {
+  basePath: () => []
+})
 
 // Sanity `_type` → Vue component. Typing it as Record<BlockType, …> makes
 // TypeScript fail when a block exists in the schema without a component here.
@@ -39,8 +42,7 @@ const registry: Record<BlockType, Component> = {
   pricing: LazyBlockPricing,
   cta: LazyBlockCta,
   callout: LazyBlockCallout,
-  postList: LazyBlockPostList,
-  galleryList: LazyBlockGalleryList
+  collectionList: LazyBlockCollectionList
 }
 
 const isDev = import.meta.dev
@@ -50,7 +52,7 @@ const isDev = import.meta.dev
   <div
     v-for="(block, index) in blocks ?? []"
     :key="block._key"
-    :data-sanity="encodeDataAttribute?.(['blocks', { _key: block._key }])"
+    :data-sanity="encodeDataAttribute?.([...basePath, 'blocks', { _key: block._key }])"
   >
     <component
       :is="registry[block._type]"

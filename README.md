@@ -2,9 +2,9 @@
 
 A block-based website builder. Editors compose pages from blocks in **Sanity Studio**; the **Nuxt** site renders every block with **Nuxt UI** components.
 
-- **14 page-builder blocks**: hero, features, card grid, timeline, image gallery, rich text, testimonials, FAQ, pricing, call to action, callout, logo cloud, latest posts and latest galleries
-- **Blog**: posts with authors, tags, cover images, rich text, related posts and tag filtering
-- **Galleries**: bulk photo upload, grid with a lightbox
+- **13 page-builder blocks**: hero, features, card grid, timeline, image gallery, rich text, testimonials, FAQ, pricing, call to action, callout, logo cloud and collection list
+- **Collections created in the Studio, no code needed**: Blog, Gallery, Projects, Services, Team… Each collection gets a list page (`/projects`) and entry pages (`/projects/<slug>`), with a blog, cards or gallery layout, sorting, tag filtering and related entries
+- **Flexible entries**: rich text, photo galleries with a lightbox, key details (Client, Year, …), authors, tags and page-builder blocks, all optional
 - **Site settings**: logo, navigation, header buttons, footer columns and social links, all editable
 - **Visual Editing**: click any text in the Presentation tool to edit it, with live draft preview
 - **SEO** with [Nuxt SEO](https://nuxtseo.com): sitemap from your content, robots.txt, social images, schema.org
@@ -55,7 +55,7 @@ Use the same login method (Google, GitHub or email) that owns the project; Sanit
 pnpm seed
 ```
 
-Creates site settings, Home/About/Pricing/Contact pages, four blog posts, two authors and three galleries, with photos from [Unsplash](https://unsplash.com) via picsum.photos. It stops if the dataset already has content; `pnpm seed --replace` deletes existing pages, posts, authors, galleries and settings first.
+Creates site settings, Home/About/Pricing/Contact pages, two authors and three collections: **Blog** (5 posts), **Gallery** (3 galleries) and **Projects** (3 projects), with photos from [Unsplash](https://unsplash.com) via picsum.photos. It stops if the dataset already has content; `pnpm seed --replace` deletes existing pages, collections, entries, authors and settings first.
 
 ### 5. Run
 
@@ -72,17 +72,33 @@ If port 3000 is taken, Nuxt picks the next free port. Set `SANITY_STUDIO_PREVIEW
 
 ## Content model
 
-| Type      | Studio menu   | URL               | Rendered by                          |
-| --------- | ------------- | ----------------- | ------------------------------------ |
-| `page`    | Pages         | `/<slug>`         | `app/pages/[...slug].vue` + blocks   |
-| `post`    | Blog → Posts  | `/blog/<slug>`    | `app/pages/blog/[slug].vue`          |
-| `author`  | Blog → Authors| —                 | Shown on posts                       |
-| `gallery` | Galleries     | `/gallery/<slug>` | `app/pages/gallery/[slug].vue`       |
-| `settings`| Site Settings | every page        | `app/app.vue` (header, footer, SEO)  |
+| Type         | Studio menu        | URL                         | Rendered by                                  |
+| ------------ | ------------------ | --------------------------- | -------------------------------------------- |
+| `page`       | Pages              | `/<slug>`                   | `PageBlocks.vue`                             |
+| `collection` | Collections        | `/<collection>`             | `CollectionView.vue` → `EntryList.vue`       |
+| `entry`      | Collections → *X*  | `/<collection>/<entry>`     | `EntryView.vue`                              |
+| `author`     | Authors            | —                           | Shown on entries                             |
+| `settings`   | Site Settings      | every page                  | `app/app.vue` (header, footer, SEO)          |
+
+Every URL goes through one route, `app/pages/[...slug].vue`, which runs `ROUTE_QUERY` and renders whichever matches: a page, a collection or an entry.
 
 - The page with slug `home` is the homepage (`/`). Nested slugs like `company/team` work.
-- `/blog` and `/gallery` list all posts and galleries. `/blog?tag=guide` filters by tag.
-- Pages are flexible (built from blocks). Posts and galleries have a fixed structure and share one template each.
+- A page and a collection can't share a slug (the Studio validates this). If a page and an entry share a path, the page wins.
+
+### Collections
+
+Collections let editors add new sections to the site from the Studio, with no code and no deploy.
+
+1. **Collections → +** in the Studio. The slug is the list URL (`services` → `/services`).
+2. On the **Display** tab, choose:
+   - **List layout**: *Blog* (date, excerpt, authors), *Cards* (cover and excerpt) or *Gallery* (photo tiles with a count)
+   - **Sort**: newest, oldest, title, or manual (the *Order* field on each entry)
+   - **Show tag filter** (`/services?tag=design`) and **Show related entries**
+3. Open the collection → **Entries → +**. New entries are assigned to the collection automatically.
+
+Every entry field is optional, so one entry type covers articles (**Body**), galleries (**Photos**), case studies (**Details** such as *Client: Acme*) and fully designed pages (**Blocks**). Show entries anywhere with the **Collection List** block.
+
+When a collection needs fields or behaviour the generic entry can't express (say, filtering projects by client), add a dedicated document type and template in code, like any other Nuxt route.
 
 ## Blocks
 
@@ -100,8 +116,7 @@ If port 3000 is taken, Nuxt picks the next free port. Set `SANITY_STUDIO_PREVIEW
 | Pricing            | `UPricingPlans`, `UPricingPlan`                 | `pricing.ts`                               | `BlockPricing.vue`                            |
 | Call to Action     | `UPageCTA`                                      | `cta.ts`                                   | `BlockCta.vue`                                |
 | Callout            | `UAlert`                                        | `callout.ts`                               | `BlockCallout.vue`                            |
-| Latest Posts       | `UBlogPosts`, `UBlogPost`                       | `post-list.ts`                             | `BlockPostList.vue`                           |
-| Latest Galleries   | `UPageGrid`, `UPageCard`                        | `gallery-list.ts`                          | `BlockGalleryList.vue`                        |
+| Collection List    | `UBlogPosts` / `UPageGrid`, `UPageCard`         | `collection-list.ts`                       | `BlockCollectionList.vue`                     |
 
 Field names and option values match the Nuxt UI props (`orientation`, `variant`, `color`, `icon`, …), so each component passes them straight through and the Nuxt UI docs double as field documentation.
 
@@ -135,7 +150,7 @@ Use `stegaClean()` on any value that drives logic (icons, colors, variants, URLs
 
 ### Links
 
-The `link` object (buttons, navigation, footer) points to a page, post or gallery, or to any URL, anchor (`#faq`), route (`/blog`) or `mailto:`. The `LINK` projection in `queries.ts` resolves references to paths, so components only see a `to` string.
+The `link` object (buttons, navigation, footer) points to a page, collection or entry, or to any URL, anchor (`#faq`), route (`/blog`) or `mailto:`. The `LINK` projection in `queries.ts` resolves references to paths, so components only see a `to` string.
 
 ## Visual Editing
 
@@ -151,9 +166,9 @@ Configured in `apps/web/nuxt.config.ts` with [`@nuxtjs/seo`](https://nuxtseo.com
 
 - **Site URL and name**: set `NUXT_SITE_URL` (your production domain) and `NUXT_SITE_NAME`.
 - **Meta tags**: every document has an SEO tab (title, description, social image, *Hide from search engines*). Empty fields fall back to the title, excerpt or cover image, then to the defaults in Site Settings. See `app/composables/usePageSeo.ts`.
-- **Sitemap**: `/sitemap.xml` includes every page, post and gallery not hidden from search engines (`server/api/__sitemap__/urls.ts`).
+- **Sitemap**: `/sitemap.xml` includes every page, collection and entry not hidden from search engines (`server/api/__sitemap__/urls.ts`).
 - **robots.txt**: generated automatically; indexing is blocked outside production.
-- **Structured data**: posts output schema.org `Article` with authors.
+- **Structured data**: entries output schema.org `Article` with authors.
 - **Social images** come from Sanity and are cropped to 1200 × 630. Dynamic OG image generation is disabled (`ogImage.enabled: false`); enable it if you want generated images.
 
 ## Theming
@@ -200,26 +215,29 @@ After deploying, add the site URL to CORS (`sanity cors add https://example.com 
 ```
 apps/studio
 ├─ schemaTypes/
-│  ├─ documents/      page, post, author, gallery, settings
+│  ├─ documents/      page, collection, entry, author, settings
 │  ├─ objects/        link, seo, featureItem, blockContent, pageBuilder
 │  ├─ blocks/         one file per page-builder block
 │  └─ shared/         reusable field helpers (icon, image, orientation, …)
 ├─ presentation/      where each document type appears on the site
 ├─ scripts/seed.ts    example content
-├─ structure.ts       Studio menu
+├─ structure.ts       Studio menu (Collections → entries)
 └─ sanity.config.ts
 
 apps/web
 ├─ app/
 │  ├─ components/
 │  │  ├─ blocks/      Block*.vue, one per block
-│  │  ├─ PageBlocks.vue   block registry
-│  │  ├─ PortableText.vue rich text renderer
-│  │  ├─ ImageGrid.vue    grid + lightbox / slider
-│  │  └─ AppImage.vue     responsive Sanity image
-│  ├─ composables/    useSanityImage, usePageSeo, useBlogPostProps
-│  ├─ pages/          [...slug].vue, blog/, gallery/
-│  ├─ utils/          queries.ts (GROQ), links.ts, format.ts
+│  │  ├─ PageBlocks.vue     block registry
+│  │  ├─ CollectionView.vue collection list page
+│  │  ├─ EntryView.vue      entry page
+│  │  ├─ EntryList.vue      blog / cards / gallery layouts
+│  │  ├─ PortableText.vue   rich text renderer
+│  │  ├─ ImageGrid.vue      grid + lightbox / slider
+│  │  └─ AppImage.vue       responsive Sanity image
+│  ├─ composables/    useSanityImage, usePageSeo
+│  ├─ pages/          [...slug].vue resolves every URL
+│  ├─ utils/          queries.ts (GROQ), links.ts, entries.ts, format.ts
 │  └─ app.vue         header, footer, site-wide SEO
 ├─ server/api/__sitemap__/urls.ts
 └─ sanity.types.ts    generated by `pnpm typegen`

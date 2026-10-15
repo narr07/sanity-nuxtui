@@ -19,6 +19,15 @@ const props = withDefaults(defineProps<{
 const urlFor = useSanityImage()
 const items = computed(() => (props.images ?? []).filter(image => image.asset))
 
+// 1–3 photos fill the row instead of leaving empty columns
+const gridClass = computed(() => {
+  const count = items.value.length
+  if (count === 1) return 'grid-cols-1 max-w-3xl'
+  if (count === 2) return 'grid-cols-2'
+  if (count === 3) return 'grid-cols-2 sm:grid-cols-3'
+  return 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+})
+
 const open = ref(false)
 const startIndex = ref(0)
 
@@ -56,7 +65,10 @@ function show(index: number) {
   </UCarousel>
 
   <template v-else>
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+    <div
+      class="grid gap-3"
+      :class="gridClass"
+    >
       <button
         v-for="(image, index) in items"
         :key="image._key"

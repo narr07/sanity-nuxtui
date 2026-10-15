@@ -12,21 +12,18 @@ export const resolve: PresentationPluginOptions['resolve'] = {
         }]
       })
     }),
-    post: defineLocations({
+    collection: defineLocations({
       select: { title: 'title', slug: 'slug.current' },
       resolve: doc => ({
-        locations: [
-          { title: doc?.title || 'Untitled', href: `/blog/${doc?.slug}` },
-          { title: 'Blog', href: '/blog' }
-        ]
+        locations: [{ title: doc?.title || 'Untitled', href: `/${doc?.slug}` }]
       })
     }),
-    gallery: defineLocations({
-      select: { title: 'title', slug: 'slug.current' },
+    entry: defineLocations({
+      select: { title: 'title', slug: 'slug.current', collectionTitle: 'collection.title', collectionSlug: 'collection.slug.current' },
       resolve: doc => ({
         locations: [
-          { title: doc?.title || 'Untitled', href: `/gallery/${doc?.slug}` },
-          { title: 'Galleries', href: '/gallery' }
+          { title: doc?.title || 'Untitled', href: `/${doc?.collectionSlug}/${doc?.slug}` },
+          { title: doc?.collectionTitle || 'Collection', href: `/${doc?.collectionSlug}` }
         ]
       })
     }),

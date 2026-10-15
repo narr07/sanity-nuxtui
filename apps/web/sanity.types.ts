@@ -24,7 +24,7 @@ export type SanityImageAssetReference = {
 
 export type LogoImage = {
   asset?: SanityImageAssetReference;
-  media?: unknown; // Unable to locate the referenced type "logo.image.media" in schema
+  media?: unknown; // Unable to locate the referenced type "image.media" in schema
   hotspot?: SanityImageHotspot;
   crop?: SanityImageCrop;
   alt?: string;
@@ -150,17 +150,6 @@ export type Pricing = {
   }>;
 };
 
-export type PostList = {
-  _type: "postList";
-  anchor?: string;
-  headline?: string;
-  title?: string;
-  description?: string;
-  limit?: number;
-  tag?: string;
-  link?: Link;
-};
-
 export type Logos = {
   _type: "logos";
   title?: string;
@@ -215,16 +204,6 @@ export type Hero = {
   reverse?: boolean;
 };
 
-export type GalleryList = {
-  _type: "galleryList";
-  anchor?: string;
-  headline?: string;
-  title?: string;
-  description?: string;
-  limit?: number;
-  link?: Link;
-};
-
 export type Faq = {
   _type: "faq";
   anchor?: string;
@@ -259,6 +238,25 @@ export type Cta = {
   variant?: "outline" | "solid" | "soft" | "subtle" | "naked";
   orientation?: "vertical" | "horizontal";
   reverse?: boolean;
+};
+
+export type CollectionReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "collection";
+};
+
+export type CollectionList = {
+  _type: "collectionList";
+  collection: CollectionReference;
+  anchor?: string;
+  headline?: string;
+  title?: string;
+  description?: string;
+  limit?: number;
+  tag?: string;
+  link?: Link;
 };
 
 export type CardGrid = {
@@ -364,10 +362,7 @@ export type PageBuilder = Array<
     } & Callout)
   | ({
       _key: string;
-    } & PostList)
-  | ({
-      _key: string;
-    } & GalleryList)
+    } & CollectionList)
 >;
 
 export type PageReference = {
@@ -377,25 +372,18 @@ export type PageReference = {
   [internalGroqTypeReferenceTo]?: "page";
 };
 
-export type PostReference = {
+export type EntryReference = {
   _ref: string;
   _type: "reference";
   _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "post";
-};
-
-export type GalleryReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "gallery";
+  [internalGroqTypeReferenceTo]?: "entry";
 };
 
 export type Link = {
   _type: "link";
   label?: string;
   linkType?: "internal" | "external";
-  page?: PageReference | PostReference | GalleryReference;
+  page?: PageReference | CollectionReference | EntryReference;
   href?: string;
   newTab?: boolean;
   icon?: string;
@@ -529,35 +517,6 @@ export type SanityImageHotspot = {
   width: number;
 };
 
-export type Gallery = {
-  _id: string;
-  _type: "gallery";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title: string;
-  slug: Slug;
-  date?: string;
-  description?: string;
-  images: Array<{
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    caption?: string;
-    _type: "image";
-    _key: string;
-  }>;
-  seo?: Seo;
-};
-
-export type Slug = {
-  _type: "slug";
-  current: string;
-  source?: string;
-};
-
 export type Author = {
   _id: string;
   _type: "author";
@@ -591,12 +550,13 @@ export type AuthorReference = {
   [internalGroqTypeReferenceTo]?: "author";
 };
 
-export type Post = {
+export type Entry = {
   _id: string;
-  _type: "post";
+  _type: "entry";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  collection: CollectionReference;
   title: string;
   slug: Slug;
   excerpt?: string;
@@ -609,13 +569,56 @@ export type Post = {
     _type: "image";
   };
   body?: BlockContent;
-  publishedAt: string;
+  images?: Array<{
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    caption?: string;
+    _type: "image";
+    _key: string;
+  }>;
+  blocks?: PageBuilder;
+  publishedAt?: string;
   authors?: Array<
     {
       _key: string;
     } & AuthorReference
   >;
   tags?: Array<string>;
+  details?: Array<{
+    label: string;
+    value: string;
+    url?: string;
+    _type: "detail";
+    _key: string;
+  }>;
+  order?: number;
+  seo?: Seo;
+};
+
+export type Slug = {
+  _type: "slug";
+  current: string;
+  source?: string;
+};
+
+export type Collection = {
+  _id: string;
+  _type: "collection";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title: string;
+  slug: Slug;
+  description?: string;
+  entryLabel?: string;
+  blocks?: PageBuilder;
+  layout: "blog" | "cards" | "gallery";
+  sort?: "newest" | "oldest" | "title" | "manual";
+  tagFilter?: boolean;
+  showRelated?: boolean;
   seo?: Seo;
 };
 
@@ -738,31 +741,30 @@ export type AllSanitySchemaTypes =
   | Section
   | RichText
   | Pricing
-  | PostList
   | Logos
   | ImageGallery
   | Hero
-  | GalleryList
   | Faq
   | Cta
+  | CollectionReference
+  | CollectionList
   | CardGrid
   | Callout
   | Seo
   | PageBuilder
   | PageReference
-  | PostReference
-  | GalleryReference
+  | EntryReference
   | Link
   | FeatureItem
   | BlockContent
   | Settings
   | SanityImageCrop
   | SanityImageHotspot
-  | Gallery
-  | Slug
   | Author
   | AuthorReference
-  | Post
+  | Entry
+  | Slug
+  | Collection
   | Page
   | SanityImagePaletteSwatch
   | SanityImagePalette
@@ -774,61 +776,118 @@ export type AllSanitySchemaTypes =
   | Geopoint;
 
 // Source: ../web/app/utils/queries.ts
-// Variable: PAGE_QUERY
-// Query: *[_type == "page" && slug.current == $slug][0]{  _id,  _type,  title,  seo,  blocks[]{    ...,    links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "post" => "/blog/" + page->slug.current,      page->_type == "gallery" => "/gallery/" + page->slug.current,      page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    _type == "cardGrid" => { cards[]{ ..., link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "post" => "/blog/" + page->slug.current,      page->_type == "gallery" => "/gallery/" + page->slug.current,      page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },    _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "post" => "/blog/" + page->slug.current,      page->_type == "gallery" => "/gallery/" + page->slug.current,      page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },    _type == "postList" => {      link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "post" => "/blog/" + page->slug.current,      page->_type == "gallery" => "/gallery/" + page->slug.current,      page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},      "posts": *[_type == "post" && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]        | order(publishedAt desc)[0...12]{  _id,  title,  "slug": slug.current,  publishedAt,  excerpt,  coverImage,  tags,  authors[]->{  _id,  name,  role,  avatar}}    },    _type == "galleryList" => {      link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "post" => "/blog/" + page->slug.current,      page->_type == "gallery" => "/gallery/" + page->slug.current,      page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},      "galleries": *[_type == "gallery" && defined(slug.current)] | order(date desc, _createdAt desc)[0...12]{  _id,  title,  "slug": slug.current,  date,  description,  "cover": images[0],  "count": count(images)}    },    _type == "richText" => {      body[]{        ...,        _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "post" => "/blog/" + page->slug.current,      page->_type == "gallery" => "/gallery/" + page->slug.current,      page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }      }    }  }}
-export type PAGE_QUERY_RESULT = {
-  _id: string;
-  _type: "page";
-  title: string;
-  seo: Seo | null;
-  blocks: Array<
-    | {
-        _key: string;
-        _type: "callout";
-        title: string;
-        description?: string;
-        icon?: string;
-        links: Array<{
+// Variable: ROUTE_QUERY
+// Query: {  "page": *[_type == "page" && slug.current == $path][0]{    _id,    _type,    title,    seo,    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  _type == "cardGrid" => { cards[]{ ..., link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]),  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => {    body[]{      ...,      _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }    }  }}  },  "collection": *[_type == "collection" && slug.current == $path][0]{    _id,    _type,    title,    "slug": slug.current,    description,    entryLabel,    layout,    sort,    tagFilter,    seo,    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  _type == "cardGrid" => { cards[]{ ..., link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]),  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => {    body[]{      ...,      _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }    }  }},    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current)] | order(publishedAt desc){  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]),  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  "entry": *[_type == "entry" && slug.current == $child && collection->slug.current == $parent][0]{    _id,    _type,    title,    "slug": slug.current,    publishedAt,    _updatedAt,    excerpt,    coverImage,    images,    tags,    details,    seo,    "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter },    authors[]->{  _id,  name,  role,  avatar},    body[]{      ...,      _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }    },    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  _type == "cardGrid" => { cards[]{ ..., link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]),  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => {    body[]{      ...,      _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }    }  }},    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && count(tags[@ in ^.^.tags]) > 0]      | order(publishedAt desc)[0...3]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]),  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  }}
+export type ROUTE_QUERY_RESULT = {
+  page: {
+    _id: string;
+    _type: "page";
+    title: string;
+    seo: Seo | null;
+    blocks: Array<
+      | {
           _key: string;
-          label: string | null;
-          newTab: boolean | null;
-          icon: string | null;
-          trailingIcon: string | null;
-          color:
+          _type: "callout";
+          title: string;
+          description?: string;
+          icon?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          color?:
             | "error"
             | "info"
             | "neutral"
             | "primary"
             | "secondary"
             | "success"
-            | "warning"
-            | null;
-          variant:
-            "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-          to: string | null | "/";
-        }> | null;
-        color?:
-          | "error"
-          | "info"
-          | "neutral"
-          | "primary"
-          | "secondary"
-          | "success"
-          | "warning";
-        variant?: "outline" | "soft" | "solid" | "subtle";
-      }
-    | {
-        _key: string;
-        _type: "cardGrid";
-        anchor?: string;
-        headline?: string;
-        title?: string;
-        description?: string;
-        cards: Array<{
-          title: string;
+            | "warning";
+          variant?: "outline" | "soft" | "solid" | "subtle";
+        }
+      | {
+          _key: string;
+          _type: "cardGrid";
+          anchor?: string;
+          headline?: string;
+          title?: string;
           description?: string;
-          icon?: string;
-          image?: CardImage;
+          cards: Array<{
+            title: string;
+            description?: string;
+            icon?: string;
+            image?: CardImage;
+            link: {
+              _key: null;
+              label: string | null;
+              newTab: boolean | null;
+              icon: string | null;
+              trailingIcon: string | null;
+              color:
+                | "error"
+                | "info"
+                | "neutral"
+                | "primary"
+                | "secondary"
+                | "success"
+                | "warning"
+                | null;
+              variant:
+                | "ghost"
+                | "link"
+                | "outline"
+                | "soft"
+                | "solid"
+                | "subtle"
+                | null;
+              to: string | null | "/";
+            } | null;
+            spotlight?: boolean;
+            highlight?: boolean;
+            highlightColor?:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning";
+            _type: "card";
+            _key: string;
+          }> | null;
+          variant?: "ghost" | "naked" | "outline" | "soft" | "solid" | "subtle";
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "collectionList";
+          collection: {
+            title: string;
+            slug: string;
+            layout: "blog" | "cards" | "gallery";
+            sort: "manual" | "newest" | "oldest" | "title" | null;
+          };
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          limit?: number;
+          tag?: string;
           link: {
             _key: null;
             label: string | null;
@@ -848,108 +907,148 @@ export type PAGE_QUERY_RESULT = {
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
             to: string | null | "/";
           } | null;
-          spotlight?: boolean;
-          highlight?: boolean;
-          highlightColor?:
-            | "error"
-            | "info"
-            | "neutral"
-            | "primary"
-            | "secondary"
-            | "success"
-            | "warning";
-          _type: "card";
+          links: null;
+          entries: Array<{
+            _id: string;
+            title: string;
+            slug: string;
+            path: string;
+            publishedAt: string | null;
+            excerpt: string | null;
+            cover:
+              | {
+                  asset?: SanityImageAssetReference;
+                  media?: unknown;
+                  hotspot?: SanityImageHotspot;
+                  crop?: SanityImageCrop;
+                  alt?: string;
+                  caption?: string;
+                  _type: "image";
+                  _key: string;
+                }
+              | {
+                  asset?: SanityImageAssetReference;
+                  media?: unknown;
+                  hotspot?: SanityImageHotspot;
+                  crop?: SanityImageCrop;
+                  alt?: string;
+                  _type: "image";
+                }
+              | null;
+            imageCount: number | null;
+            tags: Array<string> | null;
+            order: number | null;
+            authors: Array<{
+              _id: string;
+              name: string;
+              role: string | null;
+              avatar: {
+                asset?: SanityImageAssetReference;
+                media?: unknown;
+                hotspot?: SanityImageHotspot;
+                crop?: SanityImageCrop;
+                alt?: string;
+                _type: "image";
+              } | null;
+            }> | null;
+          }>;
+        }
+      | {
           _key: string;
-        }> | null;
-        variant?: "ghost" | "naked" | "outline" | "soft" | "solid" | "subtle";
-        links: null;
-      }
-    | {
-        _key: string;
-        _type: "cta";
-        title?: string;
-        description?: string;
-        links: Array<{
+          _type: "cta";
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image?: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          };
+          variant?: "naked" | "outline" | "soft" | "solid" | "subtle";
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
           _key: string;
-          label: string | null;
-          newTab: boolean | null;
-          icon: string | null;
-          trailingIcon: string | null;
-          color:
-            | "error"
-            | "info"
-            | "neutral"
-            | "primary"
-            | "secondary"
-            | "success"
-            | "warning"
-            | null;
-          variant:
-            "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-          to: string | null | "/";
-        }> | null;
-        image?: {
-          asset?: SanityImageAssetReference;
-          media?: unknown;
-          hotspot?: SanityImageHotspot;
-          crop?: SanityImageCrop;
-          alt?: string;
-          _type: "image";
-        };
-        variant?: "naked" | "outline" | "soft" | "solid" | "subtle";
-        orientation?: "horizontal" | "vertical";
-        reverse?: boolean;
-      }
-    | {
-        _key: string;
-        _type: "faq";
-        anchor?: string;
-        headline?: string;
-        title?: string;
-        description?: string;
-        items?: Array<{
-          question: string;
-          answer: string;
-          _type: "question";
+          _type: "faq";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          items?: Array<{
+            question: string;
+            answer: string;
+            _type: "question";
+            _key: string;
+          }>;
+          links: null;
+        }
+      | {
           _key: string;
-        }>;
-        links: null;
-      }
-    | {
-        _key: string;
-        _type: "galleryList";
-        anchor?: string;
-        headline?: string;
-        title?: string;
-        description?: string;
-        limit?: number;
-        link: {
-          _key: null;
-          label: string | null;
-          newTab: boolean | null;
-          icon: string | null;
-          trailingIcon: string | null;
-          color:
-            | "error"
-            | "info"
-            | "neutral"
-            | "primary"
-            | "secondary"
-            | "success"
-            | "warning"
-            | null;
-          variant:
-            "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-          to: string | null | "/";
-        } | null;
-        links: null;
-        galleries: Array<{
-          _id: string;
-          title: string;
-          slug: string;
-          date: string | null;
-          description: string | null;
-          cover: {
+          _type: "hero";
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image?: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          };
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
+          _type: "imageGallery";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          layout?: "carousel" | "grid";
+          images?: Array<{
             asset?: SanityImageAssetReference;
             media?: unknown;
             hotspot?: SanityImageHotspot;
@@ -958,156 +1057,361 @@ export type PAGE_QUERY_RESULT = {
             caption?: string;
             _type: "image";
             _key: string;
-          } | null;
-          count: number;
-        }>;
-      }
-    | {
-        _key: string;
-        _type: "hero";
-        headline?: string;
-        title?: string;
-        description?: string;
-        links: Array<{
+          }>;
+          links: null;
+        }
+      | {
           _key: string;
-          label: string | null;
-          newTab: boolean | null;
-          icon: string | null;
-          trailingIcon: string | null;
-          color:
-            | "error"
-            | "info"
-            | "neutral"
-            | "primary"
-            | "secondary"
-            | "success"
-            | "warning"
-            | null;
-          variant:
-            "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-          to: string | null | "/";
-        }> | null;
-        image?: {
-          asset?: SanityImageAssetReference;
-          media?: unknown;
-          hotspot?: SanityImageHotspot;
-          crop?: SanityImageCrop;
-          alt?: string;
-          _type: "image";
-        };
-        orientation?: "horizontal" | "vertical";
-        reverse?: boolean;
-      }
-    | {
-        _key: string;
-        _type: "imageGallery";
-        anchor?: string;
-        headline?: string;
-        title?: string;
-        description?: string;
-        layout?: "carousel" | "grid";
-        images?: Array<{
-          asset?: SanityImageAssetReference;
-          media?: unknown;
-          hotspot?: SanityImageHotspot;
-          crop?: SanityImageCrop;
-          alt?: string;
-          caption?: string;
-          _type: "image";
+          _type: "logos";
+          title?: string;
+          marquee?: boolean;
+          items?: Array<{
+            name: string;
+            icon?: string;
+            image?: LogoImage;
+            _type: "logo";
+            _key: string;
+          }>;
+          links: null;
+        }
+      | {
           _key: string;
-        }>;
-        links: null;
-      }
-    | {
-        _key: string;
-        _type: "logos";
-        title?: string;
-        marquee?: boolean;
-        items?: Array<{
-          name: string;
+          _type: "pricing";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          plans: Array<{
+            title: string;
+            description?: string;
+            badge?: string;
+            price?: string;
+            discount?: string;
+            billingCycle?: string;
+            billingPeriod?: string;
+            features?: Array<string>;
+            button: {
+              _key: null;
+              label: string | null;
+              newTab: boolean | null;
+              icon: string | null;
+              trailingIcon: string | null;
+              color:
+                | "error"
+                | "info"
+                | "neutral"
+                | "primary"
+                | "secondary"
+                | "success"
+                | "warning"
+                | null;
+              variant:
+                | "ghost"
+                | "link"
+                | "outline"
+                | "soft"
+                | "solid"
+                | "subtle"
+                | null;
+              to: string | null | "/";
+            } | null;
+            tagline?: string;
+            terms?: string;
+            highlight?: boolean;
+            scale?: boolean;
+            variant?: "outline" | "soft" | "solid" | "subtle";
+            _type: "plan";
+            _key: string;
+          }> | null;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "richText";
+          body: Array<
+            | {
+                children?: Array<{
+                  marks?: Array<string>;
+                  text?: string;
+                  _type: "span";
+                  _key: string;
+                }>;
+                style?: "blockquote" | "h2" | "h3" | "h4" | "normal";
+                listItem?: "bullet" | "number";
+                markDefs?: Array<{
+                  href: string;
+                  newTab?: boolean;
+                  _type: "link";
+                  _key: string;
+                }>;
+                level?: number;
+                _type: "block";
+                _key: string;
+              }
+            | {
+                _key: string;
+                _type: "callout";
+                title: string;
+                description?: string;
+                icon?: string;
+                links: Array<{
+                  _key: string;
+                  label: string | null;
+                  newTab: boolean | null;
+                  icon: string | null;
+                  trailingIcon: string | null;
+                  color:
+                    | "error"
+                    | "info"
+                    | "neutral"
+                    | "primary"
+                    | "secondary"
+                    | "success"
+                    | "warning"
+                    | null;
+                  variant:
+                    | "ghost"
+                    | "link"
+                    | "outline"
+                    | "soft"
+                    | "solid"
+                    | "subtle"
+                    | null;
+                  to: string | null | "/";
+                }> | null;
+                color?:
+                  | "error"
+                  | "info"
+                  | "neutral"
+                  | "primary"
+                  | "secondary"
+                  | "success"
+                  | "warning";
+                variant?: "outline" | "soft" | "solid" | "subtle";
+              }
+            | {
+                filename?: string;
+                code?: string;
+                _type: "codeBlock";
+                _key: string;
+              }
+            | {
+                asset?: SanityImageAssetReference;
+                media?: unknown;
+                hotspot?: SanityImageHotspot;
+                crop?: SanityImageCrop;
+                alt?: string;
+                caption?: string;
+                _type: "image";
+                _key: string;
+              }
+          > | null;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "section";
+          anchor?: string;
           icon?: string;
-          image?: LogoImage;
-          _type: "logo";
-          _key: string;
-        }>;
-        links: null;
-      }
-    | {
-        _key: string;
-        _type: "postList";
-        anchor?: string;
-        headline?: string;
-        title?: string;
-        description?: string;
-        limit?: number;
-        tag?: string;
-        link: {
-          _key: null;
-          label: string | null;
-          newTab: boolean | null;
-          icon: string | null;
-          trailingIcon: string | null;
-          color:
-            | "error"
-            | "info"
-            | "neutral"
-            | "primary"
-            | "secondary"
-            | "success"
-            | "warning"
-            | null;
-          variant:
-            "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-          to: string | null | "/";
-        } | null;
-        links: null;
-        posts: Array<{
-          _id: string;
-          title: string;
-          slug: string;
-          publishedAt: string;
-          excerpt: string | null;
-          coverImage: {
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          features?: Array<
+            {
+              _key: string;
+            } & FeatureItem
+          >;
+          image?: {
             asset?: SanityImageAssetReference;
             media?: unknown;
             hotspot?: SanityImageHotspot;
             crop?: SanityImageCrop;
             alt?: string;
             _type: "image";
-          } | null;
-          tags: Array<string> | null;
-          authors: Array<{
-            _id: string;
+          };
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
+          _type: "testimonials";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          items?: Array<{
+            quote: string;
             name: string;
-            role: string | null;
-            avatar: {
-              asset?: SanityImageAssetReference;
-              media?: unknown;
-              hotspot?: SanityImageHotspot;
-              crop?: SanityImageCrop;
-              alt?: string;
-              _type: "image";
-            } | null;
-          }> | null;
-        }>;
-      }
-    | {
-        _key: string;
-        _type: "pricing";
-        anchor?: string;
-        headline?: string;
-        title?: string;
-        description?: string;
-        plans: Array<{
+            role?: string;
+            avatar?: Avatar;
+            _type: "testimonial";
+            _key: string;
+          }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "timeline";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          items?: Array<{
+            date?: string;
+            title: string;
+            description?: string;
+            icon?: string;
+            _type: "event";
+            _key: string;
+          }>;
+          orientation?: "horizontal" | "vertical";
+          color?:
+            | "error"
+            | "info"
+            | "neutral"
+            | "primary"
+            | "secondary"
+            | "success"
+            | "warning";
+          links: null;
+        }
+    > | null;
+  } | null;
+  collection: {
+    _id: string;
+    _type: "collection";
+    title: string;
+    slug: string;
+    description: string | null;
+    entryLabel: string | null;
+    layout: "blog" | "cards" | "gallery";
+    sort: "manual" | "newest" | "oldest" | "title" | null;
+    tagFilter: boolean | null;
+    seo: Seo | null;
+    blocks: Array<
+      | {
+          _key: string;
+          _type: "callout";
           title: string;
           description?: string;
-          badge?: string;
-          price?: string;
-          discount?: string;
-          billingCycle?: string;
-          billingPeriod?: string;
-          features?: Array<string>;
-          button: {
+          icon?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          color?:
+            | "error"
+            | "info"
+            | "neutral"
+            | "primary"
+            | "secondary"
+            | "success"
+            | "warning";
+          variant?: "outline" | "soft" | "solid" | "subtle";
+        }
+      | {
+          _key: string;
+          _type: "cardGrid";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          cards: Array<{
+            title: string;
+            description?: string;
+            icon?: string;
+            image?: CardImage;
+            link: {
+              _key: null;
+              label: string | null;
+              newTab: boolean | null;
+              icon: string | null;
+              trailingIcon: string | null;
+              color:
+                | "error"
+                | "info"
+                | "neutral"
+                | "primary"
+                | "secondary"
+                | "success"
+                | "warning"
+                | null;
+              variant:
+                | "ghost"
+                | "link"
+                | "outline"
+                | "soft"
+                | "solid"
+                | "subtle"
+                | null;
+              to: string | null | "/";
+            } | null;
+            spotlight?: boolean;
+            highlight?: boolean;
+            highlightColor?:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning";
+            _type: "card";
+            _key: string;
+          }> | null;
+          variant?: "ghost" | "naked" | "outline" | "soft" | "solid" | "subtle";
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "collectionList";
+          collection: {
+            title: string;
+            slug: string;
+            layout: "blog" | "cards" | "gallery";
+            sort: "manual" | "newest" | "oldest" | "title" | null;
+          };
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          limit?: number;
+          tag?: string;
+          link: {
             _key: null;
             label: string | null;
             newTab: boolean | null;
@@ -1126,191 +1430,1127 @@ export type PAGE_QUERY_RESULT = {
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
             to: string | null | "/";
           } | null;
-          tagline?: string;
-          terms?: string;
-          highlight?: boolean;
-          scale?: boolean;
-          variant?: "outline" | "soft" | "solid" | "subtle";
-          _type: "plan";
+          links: null;
+          entries: Array<{
+            _id: string;
+            title: string;
+            slug: string;
+            path: string;
+            publishedAt: string | null;
+            excerpt: string | null;
+            cover:
+              | {
+                  asset?: SanityImageAssetReference;
+                  media?: unknown;
+                  hotspot?: SanityImageHotspot;
+                  crop?: SanityImageCrop;
+                  alt?: string;
+                  caption?: string;
+                  _type: "image";
+                  _key: string;
+                }
+              | {
+                  asset?: SanityImageAssetReference;
+                  media?: unknown;
+                  hotspot?: SanityImageHotspot;
+                  crop?: SanityImageCrop;
+                  alt?: string;
+                  _type: "image";
+                }
+              | null;
+            imageCount: number | null;
+            tags: Array<string> | null;
+            order: number | null;
+            authors: Array<{
+              _id: string;
+              name: string;
+              role: string | null;
+              avatar: {
+                asset?: SanityImageAssetReference;
+                media?: unknown;
+                hotspot?: SanityImageHotspot;
+                crop?: SanityImageCrop;
+                alt?: string;
+                _type: "image";
+              } | null;
+            }> | null;
+          }>;
+        }
+      | {
           _key: string;
-        }> | null;
-        links: null;
-      }
-    | {
-        _key: string;
-        _type: "richText";
-        body: Array<
-          | {
-              children?: Array<{
-                marks?: Array<string>;
-                text?: string;
-                _type: "span";
-                _key: string;
-              }>;
-              style?: "blockquote" | "h2" | "h3" | "h4" | "normal";
-              listItem?: "bullet" | "number";
-              markDefs?: Array<{
-                href: string;
-                newTab?: boolean;
-                _type: "link";
-                _key: string;
-              }>;
-              level?: number;
-              _type: "block";
-              _key: string;
-            }
-          | {
-              _key: string;
-              _type: "callout";
-              title: string;
-              description?: string;
-              icon?: string;
-              links: Array<{
-                _key: string;
-                label: string | null;
-                newTab: boolean | null;
-                icon: string | null;
-                trailingIcon: string | null;
-                color:
-                  | "error"
-                  | "info"
-                  | "neutral"
-                  | "primary"
-                  | "secondary"
-                  | "success"
-                  | "warning"
-                  | null;
-                variant:
-                  | "ghost"
-                  | "link"
-                  | "outline"
-                  | "soft"
-                  | "solid"
-                  | "subtle"
-                  | null;
-                to: string | null | "/";
-              }> | null;
-              color?:
+          _type: "cta";
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image?: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          };
+          variant?: "naked" | "outline" | "soft" | "solid" | "subtle";
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
+          _type: "faq";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          items?: Array<{
+            question: string;
+            answer: string;
+            _type: "question";
+            _key: string;
+          }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "hero";
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image?: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          };
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
+          _type: "imageGallery";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          layout?: "carousel" | "grid";
+          images?: Array<{
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            caption?: string;
+            _type: "image";
+            _key: string;
+          }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "logos";
+          title?: string;
+          marquee?: boolean;
+          items?: Array<{
+            name: string;
+            icon?: string;
+            image?: LogoImage;
+            _type: "logo";
+            _key: string;
+          }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "pricing";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          plans: Array<{
+            title: string;
+            description?: string;
+            badge?: string;
+            price?: string;
+            discount?: string;
+            billingCycle?: string;
+            billingPeriod?: string;
+            features?: Array<string>;
+            button: {
+              _key: null;
+              label: string | null;
+              newTab: boolean | null;
+              icon: string | null;
+              trailingIcon: string | null;
+              color:
                 | "error"
                 | "info"
                 | "neutral"
                 | "primary"
                 | "secondary"
                 | "success"
-                | "warning";
-              variant?: "outline" | "soft" | "solid" | "subtle";
-            }
-          | {
-              filename?: string;
-              code?: string;
-              _type: "codeBlock";
-              _key: string;
-            }
-          | {
-              asset?: SanityImageAssetReference;
-              media?: unknown;
-              hotspot?: SanityImageHotspot;
-              crop?: SanityImageCrop;
-              alt?: string;
-              caption?: string;
-              _type: "image";
-              _key: string;
-            }
-        > | null;
-        links: null;
-      }
-    | {
-        _key: string;
-        _type: "section";
-        anchor?: string;
-        icon?: string;
-        headline?: string;
-        title?: string;
-        description?: string;
-        links: Array<{
+                | "warning"
+                | null;
+              variant:
+                | "ghost"
+                | "link"
+                | "outline"
+                | "soft"
+                | "solid"
+                | "subtle"
+                | null;
+              to: string | null | "/";
+            } | null;
+            tagline?: string;
+            terms?: string;
+            highlight?: boolean;
+            scale?: boolean;
+            variant?: "outline" | "soft" | "solid" | "subtle";
+            _type: "plan";
+            _key: string;
+          }> | null;
+          links: null;
+        }
+      | {
           _key: string;
-          label: string | null;
-          newTab: boolean | null;
-          icon: string | null;
-          trailingIcon: string | null;
-          color:
+          _type: "richText";
+          body: Array<
+            | {
+                children?: Array<{
+                  marks?: Array<string>;
+                  text?: string;
+                  _type: "span";
+                  _key: string;
+                }>;
+                style?: "blockquote" | "h2" | "h3" | "h4" | "normal";
+                listItem?: "bullet" | "number";
+                markDefs?: Array<{
+                  href: string;
+                  newTab?: boolean;
+                  _type: "link";
+                  _key: string;
+                }>;
+                level?: number;
+                _type: "block";
+                _key: string;
+              }
+            | {
+                _key: string;
+                _type: "callout";
+                title: string;
+                description?: string;
+                icon?: string;
+                links: Array<{
+                  _key: string;
+                  label: string | null;
+                  newTab: boolean | null;
+                  icon: string | null;
+                  trailingIcon: string | null;
+                  color:
+                    | "error"
+                    | "info"
+                    | "neutral"
+                    | "primary"
+                    | "secondary"
+                    | "success"
+                    | "warning"
+                    | null;
+                  variant:
+                    | "ghost"
+                    | "link"
+                    | "outline"
+                    | "soft"
+                    | "solid"
+                    | "subtle"
+                    | null;
+                  to: string | null | "/";
+                }> | null;
+                color?:
+                  | "error"
+                  | "info"
+                  | "neutral"
+                  | "primary"
+                  | "secondary"
+                  | "success"
+                  | "warning";
+                variant?: "outline" | "soft" | "solid" | "subtle";
+              }
+            | {
+                filename?: string;
+                code?: string;
+                _type: "codeBlock";
+                _key: string;
+              }
+            | {
+                asset?: SanityImageAssetReference;
+                media?: unknown;
+                hotspot?: SanityImageHotspot;
+                crop?: SanityImageCrop;
+                alt?: string;
+                caption?: string;
+                _type: "image";
+                _key: string;
+              }
+          > | null;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "section";
+          anchor?: string;
+          icon?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          features?: Array<
+            {
+              _key: string;
+            } & FeatureItem
+          >;
+          image?: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          };
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
+          _type: "testimonials";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          items?: Array<{
+            quote: string;
+            name: string;
+            role?: string;
+            avatar?: Avatar;
+            _type: "testimonial";
+            _key: string;
+          }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "timeline";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          items?: Array<{
+            date?: string;
+            title: string;
+            description?: string;
+            icon?: string;
+            _type: "event";
+            _key: string;
+          }>;
+          orientation?: "horizontal" | "vertical";
+          color?:
             | "error"
             | "info"
             | "neutral"
             | "primary"
             | "secondary"
             | "success"
-            | "warning"
-            | null;
-          variant:
-            "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-          to: string | null | "/";
-        }> | null;
-        features?: Array<
-          {
+            | "warning";
+          links: null;
+        }
+    > | null;
+    entries: Array<{
+      _id: string;
+      title: string;
+      slug: string;
+      path: string;
+      publishedAt: string | null;
+      excerpt: string | null;
+      cover:
+        | {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            caption?: string;
+            _type: "image";
             _key: string;
-          } & FeatureItem
-        >;
-        image?: {
+          }
+        | {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          }
+        | null;
+      imageCount: number | null;
+      tags: Array<string> | null;
+      order: number | null;
+      authors: Array<{
+        _id: string;
+        name: string;
+        role: string | null;
+        avatar: {
           asset?: SanityImageAssetReference;
           media?: unknown;
           hotspot?: SanityImageHotspot;
           crop?: SanityImageCrop;
           alt?: string;
           _type: "image";
-        };
-        orientation?: "horizontal" | "vertical";
-        reverse?: boolean;
-      }
-    | {
-        _key: string;
-        _type: "testimonials";
-        anchor?: string;
-        headline?: string;
-        title?: string;
-        description?: string;
-        items?: Array<{
-          quote: string;
-          name: string;
-          role?: string;
-          avatar?: Avatar;
-          _type: "testimonial";
+        } | null;
+      }> | null;
+    }>;
+  } | null;
+  entry: {
+    _id: string;
+    _type: "entry";
+    title: string;
+    slug: string;
+    publishedAt: string | null;
+    _updatedAt: string;
+    excerpt: string | null;
+    coverImage: {
+      asset?: SanityImageAssetReference;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      alt?: string;
+      _type: "image";
+    } | null;
+    images: Array<{
+      asset?: SanityImageAssetReference;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      alt?: string;
+      caption?: string;
+      _type: "image";
+      _key: string;
+    }> | null;
+    tags: Array<string> | null;
+    details: Array<{
+      label: string;
+      value: string;
+      url?: string;
+      _type: "detail";
+      _key: string;
+    }> | null;
+    seo: Seo | null;
+    collection: {
+      title: string;
+      slug: string;
+      entryLabel: string | null;
+      showRelated: boolean | null;
+      tagFilter: boolean | null;
+    };
+    authors: Array<{
+      _id: string;
+      name: string;
+      role: string | null;
+      avatar: {
+        asset?: SanityImageAssetReference;
+        media?: unknown;
+        hotspot?: SanityImageHotspot;
+        crop?: SanityImageCrop;
+        alt?: string;
+        _type: "image";
+      } | null;
+    }> | null;
+    body: Array<
+      | {
+          children?: Array<{
+            marks?: Array<string>;
+            text?: string;
+            _type: "span";
+            _key: string;
+          }>;
+          style?: "blockquote" | "h2" | "h3" | "h4" | "normal";
+          listItem?: "bullet" | "number";
+          markDefs?: Array<{
+            href: string;
+            newTab?: boolean;
+            _type: "link";
+            _key: string;
+          }>;
+          level?: number;
+          _type: "block";
           _key: string;
-        }>;
-        links: null;
-      }
-    | {
-        _key: string;
-        _type: "timeline";
-        anchor?: string;
-        headline?: string;
-        title?: string;
-        description?: string;
-        items?: Array<{
-          date?: string;
+        }
+      | {
+          _key: string;
+          _type: "callout";
           title: string;
           description?: string;
           icon?: string;
-          _type: "event";
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          color?:
+            | "error"
+            | "info"
+            | "neutral"
+            | "primary"
+            | "secondary"
+            | "success"
+            | "warning";
+          variant?: "outline" | "soft" | "solid" | "subtle";
+        }
+      | {
+          filename?: string;
+          code?: string;
+          _type: "codeBlock";
           _key: string;
-        }>;
-        orientation?: "horizontal" | "vertical";
-        color?:
-          | "error"
-          | "info"
-          | "neutral"
-          | "primary"
-          | "secondary"
-          | "success"
-          | "warning";
-        links: null;
-      }
-  > | null;
-} | null;
+        }
+      | {
+          asset?: SanityImageAssetReference;
+          media?: unknown;
+          hotspot?: SanityImageHotspot;
+          crop?: SanityImageCrop;
+          alt?: string;
+          caption?: string;
+          _type: "image";
+          _key: string;
+        }
+    > | null;
+    blocks: Array<
+      | {
+          _key: string;
+          _type: "callout";
+          title: string;
+          description?: string;
+          icon?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          color?:
+            | "error"
+            | "info"
+            | "neutral"
+            | "primary"
+            | "secondary"
+            | "success"
+            | "warning";
+          variant?: "outline" | "soft" | "solid" | "subtle";
+        }
+      | {
+          _key: string;
+          _type: "cardGrid";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          cards: Array<{
+            title: string;
+            description?: string;
+            icon?: string;
+            image?: CardImage;
+            link: {
+              _key: null;
+              label: string | null;
+              newTab: boolean | null;
+              icon: string | null;
+              trailingIcon: string | null;
+              color:
+                | "error"
+                | "info"
+                | "neutral"
+                | "primary"
+                | "secondary"
+                | "success"
+                | "warning"
+                | null;
+              variant:
+                | "ghost"
+                | "link"
+                | "outline"
+                | "soft"
+                | "solid"
+                | "subtle"
+                | null;
+              to: string | null | "/";
+            } | null;
+            spotlight?: boolean;
+            highlight?: boolean;
+            highlightColor?:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning";
+            _type: "card";
+            _key: string;
+          }> | null;
+          variant?: "ghost" | "naked" | "outline" | "soft" | "solid" | "subtle";
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "collectionList";
+          collection: {
+            title: string;
+            slug: string;
+            layout: "blog" | "cards" | "gallery";
+            sort: "manual" | "newest" | "oldest" | "title" | null;
+          };
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          limit?: number;
+          tag?: string;
+          link: {
+            _key: null;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          } | null;
+          links: null;
+          entries: Array<{
+            _id: string;
+            title: string;
+            slug: string;
+            path: string;
+            publishedAt: string | null;
+            excerpt: string | null;
+            cover:
+              | {
+                  asset?: SanityImageAssetReference;
+                  media?: unknown;
+                  hotspot?: SanityImageHotspot;
+                  crop?: SanityImageCrop;
+                  alt?: string;
+                  caption?: string;
+                  _type: "image";
+                  _key: string;
+                }
+              | {
+                  asset?: SanityImageAssetReference;
+                  media?: unknown;
+                  hotspot?: SanityImageHotspot;
+                  crop?: SanityImageCrop;
+                  alt?: string;
+                  _type: "image";
+                }
+              | null;
+            imageCount: number | null;
+            tags: Array<string> | null;
+            order: number | null;
+            authors: Array<{
+              _id: string;
+              name: string;
+              role: string | null;
+              avatar: {
+                asset?: SanityImageAssetReference;
+                media?: unknown;
+                hotspot?: SanityImageHotspot;
+                crop?: SanityImageCrop;
+                alt?: string;
+                _type: "image";
+              } | null;
+            }> | null;
+          }>;
+        }
+      | {
+          _key: string;
+          _type: "cta";
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image?: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          };
+          variant?: "naked" | "outline" | "soft" | "solid" | "subtle";
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
+          _type: "faq";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          items?: Array<{
+            question: string;
+            answer: string;
+            _type: "question";
+            _key: string;
+          }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "hero";
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image?: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          };
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
+          _type: "imageGallery";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          layout?: "carousel" | "grid";
+          images?: Array<{
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            caption?: string;
+            _type: "image";
+            _key: string;
+          }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "logos";
+          title?: string;
+          marquee?: boolean;
+          items?: Array<{
+            name: string;
+            icon?: string;
+            image?: LogoImage;
+            _type: "logo";
+            _key: string;
+          }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "pricing";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          plans: Array<{
+            title: string;
+            description?: string;
+            badge?: string;
+            price?: string;
+            discount?: string;
+            billingCycle?: string;
+            billingPeriod?: string;
+            features?: Array<string>;
+            button: {
+              _key: null;
+              label: string | null;
+              newTab: boolean | null;
+              icon: string | null;
+              trailingIcon: string | null;
+              color:
+                | "error"
+                | "info"
+                | "neutral"
+                | "primary"
+                | "secondary"
+                | "success"
+                | "warning"
+                | null;
+              variant:
+                | "ghost"
+                | "link"
+                | "outline"
+                | "soft"
+                | "solid"
+                | "subtle"
+                | null;
+              to: string | null | "/";
+            } | null;
+            tagline?: string;
+            terms?: string;
+            highlight?: boolean;
+            scale?: boolean;
+            variant?: "outline" | "soft" | "solid" | "subtle";
+            _type: "plan";
+            _key: string;
+          }> | null;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "richText";
+          body: Array<
+            | {
+                children?: Array<{
+                  marks?: Array<string>;
+                  text?: string;
+                  _type: "span";
+                  _key: string;
+                }>;
+                style?: "blockquote" | "h2" | "h3" | "h4" | "normal";
+                listItem?: "bullet" | "number";
+                markDefs?: Array<{
+                  href: string;
+                  newTab?: boolean;
+                  _type: "link";
+                  _key: string;
+                }>;
+                level?: number;
+                _type: "block";
+                _key: string;
+              }
+            | {
+                _key: string;
+                _type: "callout";
+                title: string;
+                description?: string;
+                icon?: string;
+                links: Array<{
+                  _key: string;
+                  label: string | null;
+                  newTab: boolean | null;
+                  icon: string | null;
+                  trailingIcon: string | null;
+                  color:
+                    | "error"
+                    | "info"
+                    | "neutral"
+                    | "primary"
+                    | "secondary"
+                    | "success"
+                    | "warning"
+                    | null;
+                  variant:
+                    | "ghost"
+                    | "link"
+                    | "outline"
+                    | "soft"
+                    | "solid"
+                    | "subtle"
+                    | null;
+                  to: string | null | "/";
+                }> | null;
+                color?:
+                  | "error"
+                  | "info"
+                  | "neutral"
+                  | "primary"
+                  | "secondary"
+                  | "success"
+                  | "warning";
+                variant?: "outline" | "soft" | "solid" | "subtle";
+              }
+            | {
+                filename?: string;
+                code?: string;
+                _type: "codeBlock";
+                _key: string;
+              }
+            | {
+                asset?: SanityImageAssetReference;
+                media?: unknown;
+                hotspot?: SanityImageHotspot;
+                crop?: SanityImageCrop;
+                alt?: string;
+                caption?: string;
+                _type: "image";
+                _key: string;
+              }
+          > | null;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "section";
+          anchor?: string;
+          icon?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          features?: Array<
+            {
+              _key: string;
+            } & FeatureItem
+          >;
+          image?: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          };
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
+          _type: "testimonials";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          items?: Array<{
+            quote: string;
+            name: string;
+            role?: string;
+            avatar?: Avatar;
+            _type: "testimonial";
+            _key: string;
+          }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "timeline";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          items?: Array<{
+            date?: string;
+            title: string;
+            description?: string;
+            icon?: string;
+            _type: "event";
+            _key: string;
+          }>;
+          orientation?: "horizontal" | "vertical";
+          color?:
+            | "error"
+            | "info"
+            | "neutral"
+            | "primary"
+            | "secondary"
+            | "success"
+            | "warning";
+          links: null;
+        }
+    > | null;
+    related: Array<{
+      _id: string;
+      title: string;
+      slug: string;
+      path: string;
+      publishedAt: string | null;
+      excerpt: string | null;
+      cover:
+        | {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            caption?: string;
+            _type: "image";
+            _key: string;
+          }
+        | {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          }
+        | null;
+      imageCount: number | null;
+      tags: Array<string> | null;
+      order: number | null;
+      authors: Array<{
+        _id: string;
+        name: string;
+        role: string | null;
+        avatar: {
+          asset?: SanityImageAssetReference;
+          media?: unknown;
+          hotspot?: SanityImageHotspot;
+          crop?: SanityImageCrop;
+          alt?: string;
+          _type: "image";
+        } | null;
+      }> | null;
+    }>;
+  } | null;
+};
 
 // Source: ../web/app/utils/queries.ts
 // Variable: SETTINGS_QUERY
-// Query: *[_id == "settings"][0]{  title,  description,  logo,  ogImage,  navigation[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "post" => "/blog/" + page->slug.current,      page->_type == "gallery" => "/gallery/" + page->slug.current,      page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  headerLinks[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "post" => "/blog/" + page->slug.current,      page->_type == "gallery" => "/gallery/" + page->slug.current,      page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  footerColumns[]{    _key,    label,    links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "post" => "/blog/" + page->slug.current,      page->_type == "gallery" => "/gallery/" + page->slug.current,      page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )}  },  footerText,  socialLinks}
+// Query: *[_id == "settings"][0]{  title,  description,  logo,  ogImage,  navigation[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  headerLinks[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  footerColumns[]{    _key,    label,    links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )}  },  footerText,  socialLinks}
 export type SETTINGS_QUERY_RESULT =
   | {
       title: null;
@@ -1448,245 +2688,19 @@ export type SETTINGS_QUERY_RESULT =
   | null;
 
 // Source: ../web/app/utils/queries.ts
-// Variable: POSTS_QUERY
-// Query: *[_type == "post" && defined(slug.current)] | order(publishedAt desc){  _id,  title,  "slug": slug.current,  publishedAt,  excerpt,  coverImage,  tags,  authors[]->{  _id,  name,  role,  avatar}}
-export type POSTS_QUERY_RESULT = Array<{
-  _id: string;
-  title: string;
-  slug: string;
-  publishedAt: string;
-  excerpt: string | null;
-  coverImage: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  } | null;
-  tags: Array<string> | null;
-  authors: Array<{
-    _id: string;
-    name: string;
-    role: string | null;
-    avatar: {
-      asset?: SanityImageAssetReference;
-      media?: unknown;
-      hotspot?: SanityImageHotspot;
-      crop?: SanityImageCrop;
-      alt?: string;
-      _type: "image";
-    } | null;
-  }> | null;
-}>;
-
-// Source: ../web/app/utils/queries.ts
-// Variable: POST_QUERY
-// Query: *[_type == "post" && slug.current == $slug][0]{  _id,  _type,  title,  "slug": slug.current,  publishedAt,  _updatedAt,  excerpt,  coverImage,  tags,  authors[]->{ ..., links },  body[]{    ...,    _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "post" => "/blog/" + page->slug.current,      page->_type == "gallery" => "/gallery/" + page->slug.current,      page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }  },  seo,  "related": *[_type == "post" && slug.current != ^.slug.current && count(tags[@ in ^.^.tags]) > 0]    | order(publishedAt desc)[0...3]{  _id,  title,  "slug": slug.current,  publishedAt,  excerpt,  coverImage,  tags,  authors[]->{  _id,  name,  role,  avatar}}}
-export type POST_QUERY_RESULT = {
-  _id: string;
-  _type: "post";
-  title: string;
-  slug: string;
-  publishedAt: string;
-  _updatedAt: string;
-  excerpt: string | null;
-  coverImage: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  } | null;
-  tags: Array<string> | null;
-  authors: Array<{
-    _id: string;
-    _type: "author";
-    _createdAt: string;
-    _updatedAt: string;
-    _rev: string;
-    name: string;
-    role?: string;
-    avatar?: {
-      asset?: SanityImageAssetReference;
-      media?: unknown;
-      hotspot?: SanityImageHotspot;
-      crop?: SanityImageCrop;
-      alt?: string;
-      _type: "image";
-    };
-    bio?: string;
-    links: Array<{
-      label: string;
-      url: string;
-      icon?: string;
-      _type: "profile";
-      _key: string;
-    }> | null;
-  }> | null;
-  body: Array<
-    | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
-        style?: "blockquote" | "h2" | "h3" | "h4" | "normal";
-        listItem?: "bullet" | "number";
-        markDefs?: Array<{
-          href: string;
-          newTab?: boolean;
-          _type: "link";
-          _key: string;
-        }>;
-        level?: number;
-        _type: "block";
-        _key: string;
-      }
-    | {
-        _key: string;
-        _type: "callout";
-        title: string;
-        description?: string;
-        icon?: string;
-        links: Array<{
-          _key: string;
-          label: string | null;
-          newTab: boolean | null;
-          icon: string | null;
-          trailingIcon: string | null;
-          color:
-            | "error"
-            | "info"
-            | "neutral"
-            | "primary"
-            | "secondary"
-            | "success"
-            | "warning"
-            | null;
-          variant:
-            "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-          to: string | null | "/";
-        }> | null;
-        color?:
-          | "error"
-          | "info"
-          | "neutral"
-          | "primary"
-          | "secondary"
-          | "success"
-          | "warning";
-        variant?: "outline" | "soft" | "solid" | "subtle";
-      }
-    | {
-        filename?: string;
-        code?: string;
-        _type: "codeBlock";
-        _key: string;
-      }
-    | {
-        asset?: SanityImageAssetReference;
-        media?: unknown;
-        hotspot?: SanityImageHotspot;
-        crop?: SanityImageCrop;
-        alt?: string;
-        caption?: string;
-        _type: "image";
-        _key: string;
-      }
-  > | null;
-  seo: Seo | null;
-  related: Array<{
-    _id: string;
-    title: string;
-    slug: string;
-    publishedAt: string;
-    excerpt: string | null;
-    coverImage: {
-      asset?: SanityImageAssetReference;
-      media?: unknown;
-      hotspot?: SanityImageHotspot;
-      crop?: SanityImageCrop;
-      alt?: string;
-      _type: "image";
-    } | null;
-    tags: Array<string> | null;
-    authors: Array<{
-      _id: string;
-      name: string;
-      role: string | null;
-      avatar: {
-        asset?: SanityImageAssetReference;
-        media?: unknown;
-        hotspot?: SanityImageHotspot;
-        crop?: SanityImageCrop;
-        alt?: string;
-        _type: "image";
-      } | null;
-    }> | null;
-  }>;
-} | null;
-
-// Source: ../web/app/utils/queries.ts
-// Variable: GALLERIES_QUERY
-// Query: *[_type == "gallery" && defined(slug.current)] | order(date desc, _createdAt desc){  _id,  title,  "slug": slug.current,  date,  description,  "cover": images[0],  "count": count(images)}
-export type GALLERIES_QUERY_RESULT = Array<{
-  _id: string;
-  title: string;
-  slug: string;
-  date: string | null;
-  description: string | null;
-  cover: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    caption?: string;
-    _type: "image";
-    _key: string;
-  } | null;
-  count: number;
-}>;
-
-// Source: ../web/app/utils/queries.ts
-// Variable: GALLERY_QUERY
-// Query: *[_type == "gallery" && slug.current == $slug][0]{  _id,  _type,  title,  date,  description,  images,  seo}
-export type GALLERY_QUERY_RESULT = {
-  _id: string;
-  _type: "gallery";
-  title: string;
-  date: string | null;
-  description: string | null;
-  images: Array<{
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    caption?: string;
-    _type: "image";
-    _key: string;
-  }>;
-  seo: Seo | null;
-} | null;
-
-// Source: ../web/app/utils/queries.ts
 // Variable: SITEMAP_QUERY
-// Query: {  "pages": *[_type == "page" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },  "posts": *[_type == "post" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },  "galleries": *[_type == "gallery" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt }}
+// Query: {  "pages": *[_type == "page" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },  "collections": *[_type == "collection" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },  "entries": *[_type == "entry" && defined(slug.current) && defined(collection->slug.current) && seo.noIndex != true]{    "path": "/" + collection->slug.current + "/" + slug.current,    _updatedAt  }}
 export type SITEMAP_QUERY_RESULT = {
   pages: Array<{
     slug: string;
     _updatedAt: string;
   }>;
-  posts: Array<{
+  collections: Array<{
     slug: string;
     _updatedAt: string;
   }>;
-  galleries: Array<{
-    slug: string;
+  entries: Array<{
+    path: string;
     _updatedAt: string;
   }>;
 };
@@ -1694,13 +2708,9 @@ export type SITEMAP_QUERY_RESULT = {
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    '*[_type == "page" && slug.current == $slug][0]{\n  _id,\n  _type,\n  title,\n  seo,\n  blocks[]{\n    ...,\n    links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "post" => "/blog/" + page->slug.current,\n      page->_type == "gallery" => "/gallery/" + page->slug.current,\n      page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    _type == "cardGrid" => { cards[]{ ..., link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "post" => "/blog/" + page->slug.current,\n      page->_type == "gallery" => "/gallery/" + page->slug.current,\n      page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n    _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "post" => "/blog/" + page->slug.current,\n      page->_type == "gallery" => "/gallery/" + page->slug.current,\n      page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n    _type == "postList" => {\n      link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "post" => "/blog/" + page->slug.current,\n      page->_type == "gallery" => "/gallery/" + page->slug.current,\n      page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n      "posts": *[_type == "post" && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n        | order(publishedAt desc)[0...12]{\n  _id,\n  title,\n  "slug": slug.current,\n  publishedAt,\n  excerpt,\n  coverImage,\n  tags,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n    },\n    _type == "galleryList" => {\n      link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "post" => "/blog/" + page->slug.current,\n      page->_type == "gallery" => "/gallery/" + page->slug.current,\n      page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n      "galleries": *[_type == "gallery" && defined(slug.current)] | order(date desc, _createdAt desc)[0...12]{\n  _id,\n  title,\n  "slug": slug.current,\n  date,\n  description,\n  "cover": images[0],\n  "count": count(images)\n}\n    },\n    _type == "richText" => {\n      body[]{\n        ...,\n        _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "post" => "/blog/" + page->slug.current,\n      page->_type == "gallery" => "/gallery/" + page->slug.current,\n      page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n      }\n    }\n  }\n}': PAGE_QUERY_RESULT;
-    '*[_id == "settings"][0]{\n  title,\n  description,\n  logo,\n  ogImage,\n  navigation[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "post" => "/blog/" + page->slug.current,\n      page->_type == "gallery" => "/gallery/" + page->slug.current,\n      page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  headerLinks[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "post" => "/blog/" + page->slug.current,\n      page->_type == "gallery" => "/gallery/" + page->slug.current,\n      page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  footerColumns[]{\n    _key,\n    label,\n    links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "post" => "/blog/" + page->slug.current,\n      page->_type == "gallery" => "/gallery/" + page->slug.current,\n      page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n}\n  },\n  footerText,\n  socialLinks\n}': SETTINGS_QUERY_RESULT;
-    '*[_type == "post" && defined(slug.current)] | order(publishedAt desc){\n  _id,\n  title,\n  "slug": slug.current,\n  publishedAt,\n  excerpt,\n  coverImage,\n  tags,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}': POSTS_QUERY_RESULT;
-    '*[_type == "post" && slug.current == $slug][0]{\n  _id,\n  _type,\n  title,\n  "slug": slug.current,\n  publishedAt,\n  _updatedAt,\n  excerpt,\n  coverImage,\n  tags,\n  authors[]->{ ..., links },\n  body[]{\n    ...,\n    _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "post" => "/blog/" + page->slug.current,\n      page->_type == "gallery" => "/gallery/" + page->slug.current,\n      page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n  },\n  seo,\n  "related": *[_type == "post" && slug.current != ^.slug.current && count(tags[@ in ^.^.tags]) > 0]\n    | order(publishedAt desc)[0...3]{\n  _id,\n  title,\n  "slug": slug.current,\n  publishedAt,\n  excerpt,\n  coverImage,\n  tags,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n}': POST_QUERY_RESULT;
-    '*[_type == "gallery" && defined(slug.current)] | order(date desc, _createdAt desc){\n  _id,\n  title,\n  "slug": slug.current,\n  date,\n  description,\n  "cover": images[0],\n  "count": count(images)\n}': GALLERIES_QUERY_RESULT;
-    '*[_type == "gallery" && slug.current == $slug][0]{\n  _id,\n  _type,\n  title,\n  date,\n  description,\n  images,\n  seo\n}': GALLERY_QUERY_RESULT;
-    '{\n  "pages": *[_type == "page" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },\n  "posts": *[_type == "post" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },\n  "galleries": *[_type == "gallery" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt }\n}': SITEMAP_QUERY_RESULT;
+    '{\n  "page": *[_type == "page" && slug.current == $path][0]{\n    _id,\n    _type,\n    title,\n    seo,\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  _type == "cardGrid" => { cards[]{ ..., link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]),\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => {\n    body[]{\n      ...,\n      _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n    }\n  }\n}\n  },\n  "collection": *[_type == "collection" && slug.current == $path][0]{\n    _id,\n    _type,\n    title,\n    "slug": slug.current,\n    description,\n    entryLabel,\n    layout,\n    sort,\n    tagFilter,\n    seo,\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  _type == "cardGrid" => { cards[]{ ..., link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]),\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => {\n    body[]{\n      ...,\n      _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n    }\n  }\n},\n    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current)] | order(publishedAt desc){\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]),\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  "entry": *[_type == "entry" && slug.current == $child && collection->slug.current == $parent][0]{\n    _id,\n    _type,\n    title,\n    "slug": slug.current,\n    publishedAt,\n    _updatedAt,\n    excerpt,\n    coverImage,\n    images,\n    tags,\n    details,\n    seo,\n    "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter },\n    authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n},\n    body[]{\n      ...,\n      _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n    },\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  _type == "cardGrid" => { cards[]{ ..., link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]),\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => {\n    body[]{\n      ...,\n      _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n    }\n  }\n},\n    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && count(tags[@ in ^.^.tags]) > 0]\n      | order(publishedAt desc)[0...3]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]),\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  }\n}': ROUTE_QUERY_RESULT;
+    '*[_id == "settings"][0]{\n  title,\n  description,\n  logo,\n  ogImage,\n  navigation[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  headerLinks[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  footerColumns[]{\n    _key,\n    label,\n    links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n}\n  },\n  footerText,\n  socialLinks\n}': SETTINGS_QUERY_RESULT;
+    '{\n  "pages": *[_type == "page" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },\n  "collections": *[_type == "collection" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },\n  "entries": *[_type == "entry" && defined(slug.current) && defined(collection->slug.current) && seo.noIndex != true]{\n    "path": "/" + collection->slug.current + "/" + slug.current,\n    _updatedAt\n  }\n}': SITEMAP_QUERY_RESULT;
   }
 }
 // Lets @sanity/client releases that predate the global registry read it too

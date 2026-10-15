@@ -19,11 +19,11 @@ const items = computed(() => props.block.items?.map((item) => {
 </script>
 
 <template>
-  <UPageSection>
+  <UContainer class="py-12 sm:py-16">
     <UPageLogos
       :title="block.title"
       :items="items"
       :marquee="block.marquee"
     />
-  </UPageSection>
+  </UContainer>
 </template>

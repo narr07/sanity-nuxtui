@@ -18,13 +18,15 @@ export const page = defineType({
       title: 'Slug',
       type: 'slug',
       group: 'content',
-      description: 'Use "home" for the homepage (/). Nested paths like "company/team" are supported.',
+      description: 'Use "home" for the homepage (/). Nested paths like "company/team" are supported. Collection slugs (e.g. "blog") are taken.',
       options: { source: 'title', maxLength: 96 },
-      validation: rule => rule.required().custom((slug) => {
+      validation: rule => rule.required().custom(async (slug, context) => {
         const value = slug?.current
         if (!value) return true
-        if (/^(blog|gallery)(\/|$)/.test(value)) return '"blog" and "gallery" are reserved for posts and galleries'
-        return /^[a-z0-9]+(?:[-/][a-z0-9]+)*$/.test(value) || 'Use lowercase letters, numbers, dashes and slashes'
+        if (!/^[a-z0-9]+(?:[-/][a-z0-9]+)*$/.test(value)) return 'Use lowercase letters, numbers, dashes and slashes'
+        const client = context.getClient({ apiVersion: '2026-10-01' })
+        const taken = await client.fetch<number>('count(*[_type == "collection" && slug.current == $slug])', { slug: value })
+        return taken ? `The collection at /${value} already uses this slug` : true
       })
     }),
     defineField({

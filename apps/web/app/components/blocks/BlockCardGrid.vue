@@ -15,7 +15,7 @@ defineProps<{
     :title="block.title"
     :description="block.description"
   >
-    <UPageGrid>
+    <UPageGrid :class="gridColumns(block.cards?.length)">
       <UPageCard
         v-for="card in block.cards"
         :key="card._key"
@@ -28,6 +28,7 @@ defineProps<{
         :spotlight="card.spotlight"
         :highlight="card.highlight"
         :highlight-color="stegaClean(card.highlightColor)"
+        :ui="cardUi"
       >
         <AppImage
           v-if="card.image?.asset"

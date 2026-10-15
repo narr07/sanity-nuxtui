@@ -23,9 +23,9 @@ export const link = defineType({
     }),
     defineField({
       name: 'page',
-      title: 'Page, post or gallery',
+      title: 'Page, collection or entry',
       type: 'reference',
-      to: [{ type: 'page' }, { type: 'post' }, { type: 'gallery' }],
+      to: [{ type: 'page' }, { type: 'collection' }, { type: 'entry' }],
       hidden: ({ parent }) => parent?.linkType !== 'internal'
     }),
     defineField({
@@ -54,9 +54,16 @@ export const link = defineType({
     })
   ],
   preview: {
-    select: { label: 'label', href: 'href', slug: 'page.slug.current', refType: 'page._type', variant: 'variant' },
-    prepare: ({ label, href, slug, refType, variant }) => {
-      const prefix = refType === 'post' ? '/blog/' : refType === 'gallery' ? '/gallery/' : '/'
+    select: {
+      label: 'label',
+      href: 'href',
+      slug: 'page.slug.current',
+      refType: 'page._type',
+      collectionSlug: 'page.collection.slug.current',
+      variant: 'variant'
+    },
+    prepare: ({ label, href, slug, refType, collectionSlug, variant }) => {
+      const prefix = refType === 'entry' ? `/${collectionSlug}/` : '/'
       const path = slug === 'home' && refType === 'page' ? '/' : slug ? `${prefix}${slug}` : href
       return {
         title: label || 'Untitled link',
