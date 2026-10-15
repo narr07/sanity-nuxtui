@@ -9,6 +9,7 @@ const props = defineProps<{
 }>()
 
 const route = useRoute()
+const t = useLabels()
 const activeTag = computed(() => typeof route.query.tag === 'string' ? route.query.tag : undefined)
 
 // Every tag used by at least one entry, most used first
@@ -26,7 +27,7 @@ const entries = computed(() => {
   return activeTag.value ? sorted.filter(entry => hasTag(entry, activeTag.value!)) : sorted
 })
 
-const path = computed(() => `/${stegaClean(props.collection.slug)}`)
+const path = computed(() => stegaClean(props.collection.path) ?? '/')
 
 usePageSeo(() => ({
   title: activeTag.value
@@ -56,7 +57,7 @@ usePageSeo(() => ({
           class="flex flex-wrap gap-2"
         >
           <UButton
-            label="All"
+            :label="t('allTags')"
             :to="path"
             size="sm"
             :color="activeTag ? 'neutral' : 'primary'"
@@ -82,9 +83,9 @@ usePageSeo(() => ({
         <UEmpty
           v-else
           icon="i-lucide-folder-open"
-          :title="activeTag ? 'Nothing tagged here yet' : 'Nothing here yet'"
-          :description="activeTag ? `No entries are tagged '${activeTag}'.` : 'Entries added to this collection in Sanity Studio will show up here.'"
-          :actions="activeTag ? [{ label: 'Show all', to: path, color: 'neutral', variant: 'subtle' }] : undefined"
+          :title="activeTag ? t('emptyTagTitle') : t('emptyTitle')"
+          :description="activeTag ? t('emptyTagDescription', { tag: activeTag }) : t('emptyDescription')"
+          :actions="activeTag ? [{ label: t('showAll'), to: path, color: 'neutral', variant: 'subtle' }] : undefined"
         />
       </UPageBody>
     </UContainer>

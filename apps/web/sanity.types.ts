@@ -462,7 +462,7 @@ export type Settings = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  title: string;
+  title?: string;
   description?: string;
   logo?: {
     asset?: SanityImageAssetReference;
@@ -490,6 +490,7 @@ export type Settings = {
       _key: string;
     } & Link
   >;
+  search?: boolean;
   footerColumns?: Array<{
     label: string;
     links?: Array<
@@ -508,6 +509,28 @@ export type Settings = {
     _type: "social";
     _key: string;
   }>;
+  language: string;
+  multilingual?: boolean;
+  languages?: Array<string>;
+  fallback?: boolean;
+  labels?: {
+    onThisPage?: string;
+    relatedEntries?: string;
+    tags?: string;
+    allTags?: string;
+    photos?: string;
+    emptyTitle?: string;
+    emptyDescription?: string;
+    emptyTagTitle?: string;
+    emptyTagDescription?: string;
+    showAll?: string;
+    gallery?: string;
+    openImage?: string;
+    language?: string;
+    notTranslated?: string;
+    notFound?: string;
+    backHome?: string;
+  };
 };
 
 export type SanityImageCrop = {
@@ -552,6 +575,36 @@ export type Author = {
   }>;
 };
 
+export type Code = {
+  _type: "code";
+  language?: string;
+  filename?: string;
+  code?: string;
+  highlightedLines?: Array<number>;
+};
+
+export type TranslationMetadata = {
+  _id: string;
+  _type: "translation.metadata";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  translations?: InternationalizedArrayReference;
+  schemaTypes?: Array<string>;
+};
+
+export type InternationalizedArrayReference = Array<
+  {
+    _key: string;
+  } & InternationalizedArrayReferenceValue
+>;
+
+export type InternationalizedArrayReferenceValue = {
+  _type: "internationalizedArrayReferenceValue";
+  value?: PageReference | CollectionReference | EntryReference;
+  language: string;
+};
+
 export type AuthorReference = {
   _ref: string;
   _type: "reference";
@@ -565,6 +618,7 @@ export type Entry = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  language?: string;
   collection: CollectionReference;
   title: string;
   slug: Slug;
@@ -620,6 +674,7 @@ export type Collection = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  language?: string;
   title: string;
   slug: Slug;
   description?: string;
@@ -640,18 +695,11 @@ export type Page = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  language?: string;
   title: string;
   slug: Slug;
   blocks?: PageBuilder;
   seo?: Seo;
-};
-
-export type Code = {
-  _type: "code";
-  language?: string;
-  filename?: string;
-  code?: string;
-  highlightedLines?: Array<number>;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -782,12 +830,15 @@ export type AllSanitySchemaTypes =
   | SanityImageCrop
   | SanityImageHotspot
   | Author
+  | Code
+  | TranslationMetadata
+  | InternationalizedArrayReference
+  | InternationalizedArrayReferenceValue
   | AuthorReference
   | Entry
   | Slug
   | Collection
   | Page
-  | Code
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
@@ -799,11 +850,12 @@ export type AllSanitySchemaTypes =
 
 // Source: ../web/app/utils/queries.ts
 // Variable: ROUTE_QUERY
-// Query: {  "page": *[_type == "page" && slug.current == $path][0]{    _id,    _type,    title,    seo,    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  defined(image) => { image{  ...,  "lqip": asset->metadata.lqip} },  defined(images) => { images[]{  ...,  "lqip": asset->metadata.lqip} },  _type == "cardGrid" => { cards[]{ ..., image{  ...,  "lqip": asset->metadata.lqip}, link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => { body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }} }}  },  "collection": *[_type == "collection" && slug.current == $path][0]{    _id,    _type,    title,    "slug": slug.current,    description,    entryLabel,    layout,    sort,    tagFilter,    seo,    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  defined(image) => { image{  ...,  "lqip": asset->metadata.lqip} },  defined(images) => { images[]{  ...,  "lqip": asset->metadata.lqip} },  _type == "cardGrid" => { cards[]{ ..., image{  ...,  "lqip": asset->metadata.lqip}, link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => { body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }} }},    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current)] | order(publishedAt desc){  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  "entry": *[_type == "entry" && slug.current == $child && collection->slug.current == $parent][0]{    _id,    _type,    title,    "slug": slug.current,    publishedAt,    _updatedAt,    excerpt,    coverImage{  ...,  "lqip": asset->metadata.lqip},    images[]{  ...,  "lqip": asset->metadata.lqip},    tags,    details,    sections,    seo,    "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter, toc },    authors[]->{  _id,  name,  role,  avatar},    body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }},    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  defined(image) => { image{  ...,  "lqip": asset->metadata.lqip} },  defined(images) => { images[]{  ...,  "lqip": asset->metadata.lqip} },  _type == "cardGrid" => { cards[]{ ..., image{  ...,  "lqip": asset->metadata.lqip}, link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => { body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }} }},    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && count(tags[@ in ^.^.tags]) > 0]      | order(publishedAt desc)[0...3]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  }}
+// Query: {  "page": (coalesce(  *[_type == "page" && slug.current == $path && coalesce(language, $defaultLanguage) == $language][0],  *[_type == "page" && slug.current == $path && ($fallback && coalesce(language, $defaultLanguage) == $defaultLanguage)][0])){    _id,    _type,    "language": coalesce(language, $defaultLanguage),    title,    seo,    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )},  defined(image) => { image{  ...,  "lqip": asset->metadata.lqip} },  defined(images) => { images[]{  ...,  "lqip": asset->metadata.lqip} },  _type == "cardGrid" => { cards[]{ ..., image{  ...,  "lqip": asset->metadata.lqip}, link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )},    "collection": (coalesce(*[_type == "translation.metadata" && references(^.collection._ref)][0].translations[language == $language][0].value->, collection->)){      title,      "slug": slug.current,      layout,      sort,      "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current) && coalesce(language, $defaultLanguage) == coalesce(^.language, $defaultLanguage) && (!defined(^.^.tag) || ^.^.tag in tags)]        | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current),  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}    }  },  _type == "richText" => { body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )} }} }},    "translations": *[_type == "translation.metadata" && references(^._id)][0].translations[language in $languages]{  language,  "path": value->{ "path": select(  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current) }.path}[defined(path)]  },  "collection": (coalesce(  *[_type == "collection" && slug.current == $path && coalesce(language, $defaultLanguage) == $language][0],  *[_type == "collection" && slug.current == $path && ($fallback && coalesce(language, $defaultLanguage) == $defaultLanguage)][0])){    _id,    _type,    "language": coalesce(language, $defaultLanguage),    title,    "slug": slug.current,    "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current),    description,    entryLabel,    layout,    sort,    tagFilter,    seo,    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )},  defined(image) => { image{  ...,  "lqip": asset->metadata.lqip} },  defined(images) => { images[]{  ...,  "lqip": asset->metadata.lqip} },  _type == "cardGrid" => { cards[]{ ..., image{  ...,  "lqip": asset->metadata.lqip}, link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )},    "collection": (coalesce(*[_type == "translation.metadata" && references(^.collection._ref)][0].translations[language == $language][0].value->, collection->)){      title,      "slug": slug.current,      layout,      sort,      "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current) && coalesce(language, $defaultLanguage) == coalesce(^.language, $defaultLanguage) && (!defined(^.^.tag) || ^.^.tag in tags)]        | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current),  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}    }  },  _type == "richText" => { body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )} }} }},    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current) && coalesce(language, $defaultLanguage) == coalesce(^.language, $defaultLanguage)] | order(publishedAt desc){  _id,  title,  "slug": slug.current,  "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current),  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}},    "translations": *[_type == "translation.metadata" && references(^._id)][0].translations[language in $languages]{  language,  "path": value->{ "path": select(  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current) }.path}[defined(path)]  },  "entry": (coalesce(  *[_type == "entry" && slug.current == $child && collection->slug.current == $parent && coalesce(language, $defaultLanguage) == $language][0],  *[_type == "entry" && slug.current == $child && collection->slug.current == $parent && ($fallback && coalesce(language, $defaultLanguage) == $defaultLanguage)][0])){    _id,    _type,    "language": coalesce(language, $defaultLanguage),    title,    "slug": slug.current,    publishedAt,    _updatedAt,    excerpt,    coverImage{  ...,  "lqip": asset->metadata.lqip},    images[]{  ...,  "lqip": asset->metadata.lqip},    tags,    details,    sections,    seo,    "collection": collection->{ title, "slug": slug.current, "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current), entryLabel, showRelated, tagFilter, toc, "translations": *[_type == "translation.metadata" && references(^._id)][0].translations[language in $languages]{  language,  "path": value->{ "path": select(  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current) }.path}[defined(path)] },    authors[]->{  _id,  name,  role,  avatar},    body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )} }},    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )},  defined(image) => { image{  ...,  "lqip": asset->metadata.lqip} },  defined(images) => { images[]{  ...,  "lqip": asset->metadata.lqip} },  _type == "cardGrid" => { cards[]{ ..., image{  ...,  "lqip": asset->metadata.lqip}, link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )},    "collection": (coalesce(*[_type == "translation.metadata" && references(^.collection._ref)][0].translations[language == $language][0].value->, collection->)){      title,      "slug": slug.current,      layout,      sort,      "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current) && coalesce(language, $defaultLanguage) == coalesce(^.language, $defaultLanguage) && (!defined(^.^.tag) || ^.^.tag in tags)]        | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current),  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}    }  },  _type == "richText" => { body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )} }} }},    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && coalesce(language, $defaultLanguage) == coalesce(^.language, $defaultLanguage) && count(tags[@ in ^.^.tags]) > 0]      | order(publishedAt desc)[0...3]{  _id,  title,  "slug": slug.current,  "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current),  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}},    "translations": *[_type == "translation.metadata" && references(^._id)][0].translations[language in $languages]{  language,  "path": value->{ "path": select(  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current) }.path}[defined(path)]  }}
 export type ROUTE_QUERY_RESULT = {
   page: {
     _id: string;
     _type: "page";
+    language: string | unknown | null;
     title: string;
     seo: Seo | null;
     blocks: Array<
@@ -830,7 +882,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           color?:
             | "error"
@@ -885,7 +937,7 @@ export type ROUTE_QUERY_RESULT = {
                 | "solid"
                 | "subtle"
                 | null;
-              to: string | null | "/";
+              to: string | null | "" | "/";
             } | null;
             spotlight?: boolean;
             highlight?: boolean;
@@ -906,12 +958,111 @@ export type ROUTE_QUERY_RESULT = {
       | {
           _key: string;
           _type: "collectionList";
-          collection: {
-            title: string;
-            slug: string;
-            layout: "blog" | "cards" | "gallery";
-            sort: "manual" | "newest" | "oldest" | "title" | null;
-          };
+          collection:
+            | {
+                title: string;
+                slug: string;
+                layout: null;
+                sort: null;
+                entries: Array<{
+                  _id: string;
+                  title: string;
+                  slug: string;
+                  path: string | null;
+                  publishedAt: string | null;
+                  excerpt: string | null;
+                  cover:
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        caption?: string;
+                        _type: "image";
+                        _key: string;
+                        lqip: string | null;
+                      }
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        _type: "image";
+                        lqip: string | null;
+                      }
+                    | null;
+                  imageCount: number | null;
+                  tags: Array<string> | null;
+                  order: number | null;
+                  authors: Array<{
+                    _id: string;
+                    name: string;
+                    role: string | null;
+                    avatar: {
+                      asset?: SanityImageAssetReference;
+                      media?: unknown;
+                      hotspot?: SanityImageHotspot;
+                      crop?: SanityImageCrop;
+                      alt?: string;
+                      _type: "image";
+                    } | null;
+                  }> | null;
+                }>;
+              }
+            | {
+                title: string;
+                slug: string;
+                layout: "blog" | "cards" | "gallery";
+                sort: "manual" | "newest" | "oldest" | "title" | null;
+                entries: Array<{
+                  _id: string;
+                  title: string;
+                  slug: string;
+                  path: string | null;
+                  publishedAt: string | null;
+                  excerpt: string | null;
+                  cover:
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        caption?: string;
+                        _type: "image";
+                        _key: string;
+                        lqip: string | null;
+                      }
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        _type: "image";
+                        lqip: string | null;
+                      }
+                    | null;
+                  imageCount: number | null;
+                  tags: Array<string> | null;
+                  order: number | null;
+                  authors: Array<{
+                    _id: string;
+                    name: string;
+                    role: string | null;
+                    avatar: {
+                      asset?: SanityImageAssetReference;
+                      media?: unknown;
+                      hotspot?: SanityImageHotspot;
+                      crop?: SanityImageCrop;
+                      alt?: string;
+                      _type: "image";
+                    } | null;
+                  }> | null;
+                }>;
+              };
           anchor?: string;
           headline?: string;
           title?: string;
@@ -935,55 +1086,9 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           } | null;
           links: null;
-          entries: Array<{
-            _id: string;
-            title: string;
-            slug: string;
-            path: string;
-            publishedAt: string | null;
-            excerpt: string | null;
-            cover:
-              | {
-                  asset?: SanityImageAssetReference;
-                  media?: unknown;
-                  hotspot?: SanityImageHotspot;
-                  crop?: SanityImageCrop;
-                  alt?: string;
-                  caption?: string;
-                  _type: "image";
-                  _key: string;
-                  lqip: string | null;
-                }
-              | {
-                  asset?: SanityImageAssetReference;
-                  media?: unknown;
-                  hotspot?: SanityImageHotspot;
-                  crop?: SanityImageCrop;
-                  alt?: string;
-                  _type: "image";
-                  lqip: string | null;
-                }
-              | null;
-            imageCount: number | null;
-            tags: Array<string> | null;
-            order: number | null;
-            authors: Array<{
-              _id: string;
-              name: string;
-              role: string | null;
-              avatar: {
-                asset?: SanityImageAssetReference;
-                media?: unknown;
-                hotspot?: SanityImageHotspot;
-                crop?: SanityImageCrop;
-                alt?: string;
-                _type: "image";
-              } | null;
-            }> | null;
-          }>;
         }
       | {
           _key: string;
@@ -1007,7 +1112,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image?: {
             asset?: SanityImageAssetReference;
@@ -1043,7 +1148,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image: {
             asset?: SanityImageAssetReference;
@@ -1096,7 +1201,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image?: {
             asset?: SanityImageAssetReference;
@@ -1132,7 +1237,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image: {
             asset?: SanityImageAssetReference;
@@ -1240,7 +1345,7 @@ export type ROUTE_QUERY_RESULT = {
                 | "solid"
                 | "subtle"
                 | null;
-              to: string | null | "/";
+              to: string | null | "" | "/";
             } | null;
             tagline?: string;
             terms?: string;
@@ -1304,7 +1409,7 @@ export type ROUTE_QUERY_RESULT = {
                     | "solid"
                     | "subtle"
                     | null;
-                  to: string | null | "/";
+                  to: string | null | "" | "/";
                 }> | null;
                 color?:
                   | "error"
@@ -1372,7 +1477,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           features?: Array<
             {
@@ -1415,7 +1520,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           features?: Array<
             {
@@ -1478,12 +1583,18 @@ export type ROUTE_QUERY_RESULT = {
           links: null;
         }
     > | null;
+    translations: Array<{
+      language: string;
+      path: string | "" | "/";
+    }> | null;
   } | null;
   collection: {
     _id: string;
     _type: "collection";
+    language: string | unknown | null;
     title: string;
     slug: string;
+    path: string | null;
     description: string | null;
     entryLabel: string | null;
     layout: "blog" | "cards" | "gallery";
@@ -1514,7 +1625,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           color?:
             | "error"
@@ -1569,7 +1680,7 @@ export type ROUTE_QUERY_RESULT = {
                 | "solid"
                 | "subtle"
                 | null;
-              to: string | null | "/";
+              to: string | null | "" | "/";
             } | null;
             spotlight?: boolean;
             highlight?: boolean;
@@ -1590,12 +1701,111 @@ export type ROUTE_QUERY_RESULT = {
       | {
           _key: string;
           _type: "collectionList";
-          collection: {
-            title: string;
-            slug: string;
-            layout: "blog" | "cards" | "gallery";
-            sort: "manual" | "newest" | "oldest" | "title" | null;
-          };
+          collection:
+            | {
+                title: string;
+                slug: string;
+                layout: null;
+                sort: null;
+                entries: Array<{
+                  _id: string;
+                  title: string;
+                  slug: string;
+                  path: string | null;
+                  publishedAt: string | null;
+                  excerpt: string | null;
+                  cover:
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        caption?: string;
+                        _type: "image";
+                        _key: string;
+                        lqip: string | null;
+                      }
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        _type: "image";
+                        lqip: string | null;
+                      }
+                    | null;
+                  imageCount: number | null;
+                  tags: Array<string> | null;
+                  order: number | null;
+                  authors: Array<{
+                    _id: string;
+                    name: string;
+                    role: string | null;
+                    avatar: {
+                      asset?: SanityImageAssetReference;
+                      media?: unknown;
+                      hotspot?: SanityImageHotspot;
+                      crop?: SanityImageCrop;
+                      alt?: string;
+                      _type: "image";
+                    } | null;
+                  }> | null;
+                }>;
+              }
+            | {
+                title: string;
+                slug: string;
+                layout: "blog" | "cards" | "gallery";
+                sort: "manual" | "newest" | "oldest" | "title" | null;
+                entries: Array<{
+                  _id: string;
+                  title: string;
+                  slug: string;
+                  path: string | null;
+                  publishedAt: string | null;
+                  excerpt: string | null;
+                  cover:
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        caption?: string;
+                        _type: "image";
+                        _key: string;
+                        lqip: string | null;
+                      }
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        _type: "image";
+                        lqip: string | null;
+                      }
+                    | null;
+                  imageCount: number | null;
+                  tags: Array<string> | null;
+                  order: number | null;
+                  authors: Array<{
+                    _id: string;
+                    name: string;
+                    role: string | null;
+                    avatar: {
+                      asset?: SanityImageAssetReference;
+                      media?: unknown;
+                      hotspot?: SanityImageHotspot;
+                      crop?: SanityImageCrop;
+                      alt?: string;
+                      _type: "image";
+                    } | null;
+                  }> | null;
+                }>;
+              };
           anchor?: string;
           headline?: string;
           title?: string;
@@ -1619,55 +1829,9 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           } | null;
           links: null;
-          entries: Array<{
-            _id: string;
-            title: string;
-            slug: string;
-            path: string;
-            publishedAt: string | null;
-            excerpt: string | null;
-            cover:
-              | {
-                  asset?: SanityImageAssetReference;
-                  media?: unknown;
-                  hotspot?: SanityImageHotspot;
-                  crop?: SanityImageCrop;
-                  alt?: string;
-                  caption?: string;
-                  _type: "image";
-                  _key: string;
-                  lqip: string | null;
-                }
-              | {
-                  asset?: SanityImageAssetReference;
-                  media?: unknown;
-                  hotspot?: SanityImageHotspot;
-                  crop?: SanityImageCrop;
-                  alt?: string;
-                  _type: "image";
-                  lqip: string | null;
-                }
-              | null;
-            imageCount: number | null;
-            tags: Array<string> | null;
-            order: number | null;
-            authors: Array<{
-              _id: string;
-              name: string;
-              role: string | null;
-              avatar: {
-                asset?: SanityImageAssetReference;
-                media?: unknown;
-                hotspot?: SanityImageHotspot;
-                crop?: SanityImageCrop;
-                alt?: string;
-                _type: "image";
-              } | null;
-            }> | null;
-          }>;
         }
       | {
           _key: string;
@@ -1691,7 +1855,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image?: {
             asset?: SanityImageAssetReference;
@@ -1727,7 +1891,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image: {
             asset?: SanityImageAssetReference;
@@ -1780,7 +1944,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image?: {
             asset?: SanityImageAssetReference;
@@ -1816,7 +1980,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image: {
             asset?: SanityImageAssetReference;
@@ -1924,7 +2088,7 @@ export type ROUTE_QUERY_RESULT = {
                 | "solid"
                 | "subtle"
                 | null;
-              to: string | null | "/";
+              to: string | null | "" | "/";
             } | null;
             tagline?: string;
             terms?: string;
@@ -1988,7 +2152,7 @@ export type ROUTE_QUERY_RESULT = {
                     | "solid"
                     | "subtle"
                     | null;
-                  to: string | null | "/";
+                  to: string | null | "" | "/";
                 }> | null;
                 color?:
                   | "error"
@@ -2056,7 +2220,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           features?: Array<
             {
@@ -2099,7 +2263,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           features?: Array<
             {
@@ -2166,7 +2330,7 @@ export type ROUTE_QUERY_RESULT = {
       _id: string;
       title: string;
       slug: string;
-      path: string;
+      path: string | null;
       publishedAt: string | null;
       excerpt: string | null;
       cover:
@@ -2208,10 +2372,15 @@ export type ROUTE_QUERY_RESULT = {
         } | null;
       }> | null;
     }>;
+    translations: Array<{
+      language: string;
+      path: string | "" | "/";
+    }> | null;
   } | null;
   entry: {
     _id: string;
     _type: "entry";
+    language: string | unknown | null;
     title: string;
     slug: string;
     publishedAt: string | null;
@@ -2250,10 +2419,15 @@ export type ROUTE_QUERY_RESULT = {
     collection: {
       title: string;
       slug: string;
+      path: string | null;
       entryLabel: string | null;
       showRelated: boolean | null;
       tagFilter: boolean | null;
       toc: boolean | null;
+      translations: Array<{
+        language: string;
+        path: string | "" | "/";
+      }> | null;
     };
     authors: Array<{
       _id: string;
@@ -2311,7 +2485,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           color?:
             | "error"
@@ -2376,7 +2550,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           color?:
             | "error"
@@ -2431,7 +2605,7 @@ export type ROUTE_QUERY_RESULT = {
                 | "solid"
                 | "subtle"
                 | null;
-              to: string | null | "/";
+              to: string | null | "" | "/";
             } | null;
             spotlight?: boolean;
             highlight?: boolean;
@@ -2452,12 +2626,111 @@ export type ROUTE_QUERY_RESULT = {
       | {
           _key: string;
           _type: "collectionList";
-          collection: {
-            title: string;
-            slug: string;
-            layout: "blog" | "cards" | "gallery";
-            sort: "manual" | "newest" | "oldest" | "title" | null;
-          };
+          collection:
+            | {
+                title: string;
+                slug: string;
+                layout: null;
+                sort: null;
+                entries: Array<{
+                  _id: string;
+                  title: string;
+                  slug: string;
+                  path: string | null;
+                  publishedAt: string | null;
+                  excerpt: string | null;
+                  cover:
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        caption?: string;
+                        _type: "image";
+                        _key: string;
+                        lqip: string | null;
+                      }
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        _type: "image";
+                        lqip: string | null;
+                      }
+                    | null;
+                  imageCount: number | null;
+                  tags: Array<string> | null;
+                  order: number | null;
+                  authors: Array<{
+                    _id: string;
+                    name: string;
+                    role: string | null;
+                    avatar: {
+                      asset?: SanityImageAssetReference;
+                      media?: unknown;
+                      hotspot?: SanityImageHotspot;
+                      crop?: SanityImageCrop;
+                      alt?: string;
+                      _type: "image";
+                    } | null;
+                  }> | null;
+                }>;
+              }
+            | {
+                title: string;
+                slug: string;
+                layout: "blog" | "cards" | "gallery";
+                sort: "manual" | "newest" | "oldest" | "title" | null;
+                entries: Array<{
+                  _id: string;
+                  title: string;
+                  slug: string;
+                  path: string | null;
+                  publishedAt: string | null;
+                  excerpt: string | null;
+                  cover:
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        caption?: string;
+                        _type: "image";
+                        _key: string;
+                        lqip: string | null;
+                      }
+                    | {
+                        asset?: SanityImageAssetReference;
+                        media?: unknown;
+                        hotspot?: SanityImageHotspot;
+                        crop?: SanityImageCrop;
+                        alt?: string;
+                        _type: "image";
+                        lqip: string | null;
+                      }
+                    | null;
+                  imageCount: number | null;
+                  tags: Array<string> | null;
+                  order: number | null;
+                  authors: Array<{
+                    _id: string;
+                    name: string;
+                    role: string | null;
+                    avatar: {
+                      asset?: SanityImageAssetReference;
+                      media?: unknown;
+                      hotspot?: SanityImageHotspot;
+                      crop?: SanityImageCrop;
+                      alt?: string;
+                      _type: "image";
+                    } | null;
+                  }> | null;
+                }>;
+              };
           anchor?: string;
           headline?: string;
           title?: string;
@@ -2481,55 +2754,9 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           } | null;
           links: null;
-          entries: Array<{
-            _id: string;
-            title: string;
-            slug: string;
-            path: string;
-            publishedAt: string | null;
-            excerpt: string | null;
-            cover:
-              | {
-                  asset?: SanityImageAssetReference;
-                  media?: unknown;
-                  hotspot?: SanityImageHotspot;
-                  crop?: SanityImageCrop;
-                  alt?: string;
-                  caption?: string;
-                  _type: "image";
-                  _key: string;
-                  lqip: string | null;
-                }
-              | {
-                  asset?: SanityImageAssetReference;
-                  media?: unknown;
-                  hotspot?: SanityImageHotspot;
-                  crop?: SanityImageCrop;
-                  alt?: string;
-                  _type: "image";
-                  lqip: string | null;
-                }
-              | null;
-            imageCount: number | null;
-            tags: Array<string> | null;
-            order: number | null;
-            authors: Array<{
-              _id: string;
-              name: string;
-              role: string | null;
-              avatar: {
-                asset?: SanityImageAssetReference;
-                media?: unknown;
-                hotspot?: SanityImageHotspot;
-                crop?: SanityImageCrop;
-                alt?: string;
-                _type: "image";
-              } | null;
-            }> | null;
-          }>;
         }
       | {
           _key: string;
@@ -2553,7 +2780,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image?: {
             asset?: SanityImageAssetReference;
@@ -2589,7 +2816,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image: {
             asset?: SanityImageAssetReference;
@@ -2642,7 +2869,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image?: {
             asset?: SanityImageAssetReference;
@@ -2678,7 +2905,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           image: {
             asset?: SanityImageAssetReference;
@@ -2786,7 +3013,7 @@ export type ROUTE_QUERY_RESULT = {
                 | "solid"
                 | "subtle"
                 | null;
-              to: string | null | "/";
+              to: string | null | "" | "/";
             } | null;
             tagline?: string;
             terms?: string;
@@ -2850,7 +3077,7 @@ export type ROUTE_QUERY_RESULT = {
                     | "solid"
                     | "subtle"
                     | null;
-                  to: string | null | "/";
+                  to: string | null | "" | "/";
                 }> | null;
                 color?:
                   | "error"
@@ -2918,7 +3145,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           features?: Array<
             {
@@ -2961,7 +3188,7 @@ export type ROUTE_QUERY_RESULT = {
               | null;
             variant:
               "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-            to: string | null | "/";
+            to: string | null | "" | "/";
           }> | null;
           features?: Array<
             {
@@ -3028,7 +3255,7 @@ export type ROUTE_QUERY_RESULT = {
       _id: string;
       title: string;
       slug: string;
-      path: string;
+      path: string | null;
       publishedAt: string | null;
       excerpt: string | null;
       cover:
@@ -3070,59 +3297,396 @@ export type ROUTE_QUERY_RESULT = {
         } | null;
       }> | null;
     }>;
+    translations: Array<{
+      language: string;
+      path: string | "" | "/";
+    }> | null;
   } | null;
 };
 
 // Source: ../web/app/utils/queries.ts
+// Variable: LANGUAGES_QUERY
+// Query: *[_id == "settings"][0]{  "defaultLanguage": coalesce(language, "en"),  "languages": select(multilingual == true => languages, []),  "fallback": fallback != false}
+export type LANGUAGES_QUERY_RESULT =
+  | {
+      defaultLanguage: string | "en";
+      languages: Array<never>;
+      fallback: true;
+    }
+  | {
+      defaultLanguage: "en";
+      languages: Array<never>;
+      fallback: true;
+    }
+  | {
+      defaultLanguage: string;
+      languages: Array<string> | Array<never> | null;
+      fallback: boolean | true;
+    }
+  | null;
+
+// Source: ../web/app/utils/queries.ts
 // Variable: SETTINGS_QUERY
-// Query: *[_id == "settings"][0]{  title,  description,  logo,  ogImage,  navigation[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  headerLinks[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  footerColumns[]{    _key,    label,    links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )}  },  footerText,  socialLinks}
+// Query: *[_id == "settings"][0]{  "title": coalesce(*[_id == $translationId][0].title, title),  "description": coalesce(*[_id == $translationId][0].description, description),  logo,  ogImage,  "navigation": (coalesce(*[_id == $translationId][0].navigation, navigation))[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )},  "headerLinks": (coalesce(*[_id == $translationId][0].headerLinks, headerLinks))[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )},  "footerColumns": (coalesce(*[_id == $translationId][0].footerColumns, footerColumns))[]{    _key,    label,    links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current) }.path,    href  )}  },  "footerText": coalesce(*[_id == $translationId][0].footerText, footerText),  socialLinks,  labels,  "translatedLabels": *[_id == $translationId][0].labels,  "search": search != false}
 export type SETTINGS_QUERY_RESULT =
-  | {
-      title: null;
-      description: null;
-      logo: null;
-      ogImage: null;
-      navigation: null;
-      headerLinks: null;
-      footerColumns: null;
-      footerText: null;
-      socialLinks: null;
-    }
-  | {
-      title: string;
-      description: null;
-      logo: null;
-      ogImage: null;
-      navigation: null;
-      headerLinks: null;
-      footerColumns: null;
-      footerText: null;
-      socialLinks: null;
-    }
   | {
       title: string;
       description: string | null;
       logo: null;
       ogImage: null;
-      navigation: null;
-      headerLinks: null;
-      footerColumns: null;
-      footerText: null;
+      navigation: Array<{
+        _key: string;
+        label: string | null;
+        newTab: boolean | null;
+        icon: string | null;
+        trailingIcon: string | null;
+        color:
+          | "error"
+          | "info"
+          | "neutral"
+          | "primary"
+          | "secondary"
+          | "success"
+          | "warning"
+          | null;
+        variant:
+          "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+        to: string | null | "" | "/";
+      }> | null;
+      headerLinks: Array<{
+        _key: string;
+        label: string | null;
+        newTab: boolean | null;
+        icon: string | null;
+        trailingIcon: string | null;
+        color:
+          | "error"
+          | "info"
+          | "neutral"
+          | "primary"
+          | "secondary"
+          | "success"
+          | "warning"
+          | null;
+        variant:
+          "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+        to: string | null | "" | "/";
+      }> | null;
+      footerColumns: Array<{
+        _key: string;
+        label: string;
+        links: Array<{
+          _key: string;
+          label: string | null;
+          newTab: boolean | null;
+          icon: string | null;
+          trailingIcon: string | null;
+          color:
+            | "error"
+            | "info"
+            | "neutral"
+            | "primary"
+            | "secondary"
+            | "success"
+            | "warning"
+            | null;
+          variant:
+            "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+          to: string | null | "" | "/";
+        }> | null;
+      }> | null;
+      footerText: string | null;
       socialLinks: null;
+      labels: null;
+      translatedLabels: {
+        onThisPage?: string;
+        relatedEntries?: string;
+        tags?: string;
+        allTags?: string;
+        photos?: string;
+        emptyTitle?: string;
+        emptyDescription?: string;
+        emptyTagTitle?: string;
+        emptyTagDescription?: string;
+        showAll?: string;
+        gallery?: string;
+        openImage?: string;
+        language?: string;
+        notTranslated?: string;
+        notFound?: string;
+        backHome?: string;
+      } | null;
+      search: true;
     }
   | {
       title: string | null;
       description: string | null;
       logo: null;
       ogImage: null;
-      navigation: null;
-      headerLinks: null;
-      footerColumns: null;
-      footerText: null;
+      navigation: Array<{
+        _key: string;
+        label: string | null;
+        newTab: boolean | null;
+        icon: string | null;
+        trailingIcon: string | null;
+        color:
+          | "error"
+          | "info"
+          | "neutral"
+          | "primary"
+          | "secondary"
+          | "success"
+          | "warning"
+          | null;
+        variant:
+          "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+        to: string | null | "" | "/";
+      }> | null;
+      headerLinks: Array<{
+        _key: string;
+        label: string | null;
+        newTab: boolean | null;
+        icon: string | null;
+        trailingIcon: string | null;
+        color:
+          | "error"
+          | "info"
+          | "neutral"
+          | "primary"
+          | "secondary"
+          | "success"
+          | "warning"
+          | null;
+        variant:
+          "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+        to: string | null | "" | "/";
+      }> | null;
+      footerColumns: Array<{
+        _key: string;
+        label: string;
+        links: Array<{
+          _key: string;
+          label: string | null;
+          newTab: boolean | null;
+          icon: string | null;
+          trailingIcon: string | null;
+          color:
+            | "error"
+            | "info"
+            | "neutral"
+            | "primary"
+            | "secondary"
+            | "success"
+            | "warning"
+            | null;
+          variant:
+            "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+          to: string | null | "" | "/";
+        }> | null;
+      }> | null;
+      footerText: string | null;
       socialLinks: null;
+      labels: null;
+      translatedLabels: {
+        onThisPage?: string;
+        relatedEntries?: string;
+        tags?: string;
+        allTags?: string;
+        photos?: string;
+        emptyTitle?: string;
+        emptyDescription?: string;
+        emptyTagTitle?: string;
+        emptyTagDescription?: string;
+        showAll?: string;
+        gallery?: string;
+        openImage?: string;
+        language?: string;
+        notTranslated?: string;
+        notFound?: string;
+        backHome?: string;
+      } | null;
+      search: true;
     }
   | {
       title: string;
+      description: string | null;
+      logo: null;
+      ogImage: null;
+      navigation: Array<{
+        _key: string;
+        label: string | null;
+        newTab: boolean | null;
+        icon: string | null;
+        trailingIcon: string | null;
+        color:
+          | "error"
+          | "info"
+          | "neutral"
+          | "primary"
+          | "secondary"
+          | "success"
+          | "warning"
+          | null;
+        variant:
+          "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+        to: string | null | "" | "/";
+      }> | null;
+      headerLinks: Array<{
+        _key: string;
+        label: string | null;
+        newTab: boolean | null;
+        icon: string | null;
+        trailingIcon: string | null;
+        color:
+          | "error"
+          | "info"
+          | "neutral"
+          | "primary"
+          | "secondary"
+          | "success"
+          | "warning"
+          | null;
+        variant:
+          "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+        to: string | null | "" | "/";
+      }> | null;
+      footerColumns: Array<{
+        _key: string;
+        label: string;
+        links: Array<{
+          _key: string;
+          label: string | null;
+          newTab: boolean | null;
+          icon: string | null;
+          trailingIcon: string | null;
+          color:
+            | "error"
+            | "info"
+            | "neutral"
+            | "primary"
+            | "secondary"
+            | "success"
+            | "warning"
+            | null;
+          variant:
+            "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+          to: string | null | "" | "/";
+        }> | null;
+      }> | null;
+      footerText: string | null;
+      socialLinks: null;
+      labels: null;
+      translatedLabels: {
+        onThisPage?: string;
+        relatedEntries?: string;
+        tags?: string;
+        allTags?: string;
+        photos?: string;
+        emptyTitle?: string;
+        emptyDescription?: string;
+        emptyTagTitle?: string;
+        emptyTagDescription?: string;
+        showAll?: string;
+        gallery?: string;
+        openImage?: string;
+        language?: string;
+        notTranslated?: string;
+        notFound?: string;
+        backHome?: string;
+      } | null;
+      search: true;
+    }
+  | {
+      title: string | null;
+      description: string | null;
+      logo: null;
+      ogImage: null;
+      navigation: Array<{
+        _key: string;
+        label: string | null;
+        newTab: boolean | null;
+        icon: string | null;
+        trailingIcon: string | null;
+        color:
+          | "error"
+          | "info"
+          | "neutral"
+          | "primary"
+          | "secondary"
+          | "success"
+          | "warning"
+          | null;
+        variant:
+          "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+        to: string | null | "" | "/";
+      }> | null;
+      headerLinks: Array<{
+        _key: string;
+        label: string | null;
+        newTab: boolean | null;
+        icon: string | null;
+        trailingIcon: string | null;
+        color:
+          | "error"
+          | "info"
+          | "neutral"
+          | "primary"
+          | "secondary"
+          | "success"
+          | "warning"
+          | null;
+        variant:
+          "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+        to: string | null | "" | "/";
+      }> | null;
+      footerColumns: Array<{
+        _key: string;
+        label: string;
+        links: Array<{
+          _key: string;
+          label: string | null;
+          newTab: boolean | null;
+          icon: string | null;
+          trailingIcon: string | null;
+          color:
+            | "error"
+            | "info"
+            | "neutral"
+            | "primary"
+            | "secondary"
+            | "success"
+            | "warning"
+            | null;
+          variant:
+            "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+          to: string | null | "" | "/";
+        }> | null;
+      }> | null;
+      footerText: string | null;
+      socialLinks: null;
+      labels: null;
+      translatedLabels: {
+        onThisPage?: string;
+        relatedEntries?: string;
+        tags?: string;
+        allTags?: string;
+        photos?: string;
+        emptyTitle?: string;
+        emptyDescription?: string;
+        emptyTagTitle?: string;
+        emptyTagDescription?: string;
+        showAll?: string;
+        gallery?: string;
+        openImage?: string;
+        language?: string;
+        notTranslated?: string;
+        notFound?: string;
+        backHome?: string;
+      } | null;
+      search: true;
+    }
+  | {
+      title: string | null;
       description: string | null;
       logo: {
         asset?: SanityImageAssetReference;
@@ -3157,7 +3721,7 @@ export type SETTINGS_QUERY_RESULT =
           | null;
         variant:
           "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-        to: string | null | "/";
+        to: string | null | "" | "/";
       }> | null;
       headerLinks: Array<{
         _key: string;
@@ -3176,7 +3740,7 @@ export type SETTINGS_QUERY_RESULT =
           | null;
         variant:
           "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-        to: string | null | "/";
+        to: string | null | "" | "/";
       }> | null;
       footerColumns: Array<{
         _key: string;
@@ -3198,7 +3762,7 @@ export type SETTINGS_QUERY_RESULT =
             | null;
           variant:
             "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
-          to: string | null | "/";
+          to: string | null | "" | "/";
         }> | null;
       }> | null;
       footerText: string | null;
@@ -3209,33 +3773,106 @@ export type SETTINGS_QUERY_RESULT =
         _type: "social";
         _key: string;
       }> | null;
+      labels: {
+        onThisPage?: string;
+        relatedEntries?: string;
+        tags?: string;
+        allTags?: string;
+        photos?: string;
+        emptyTitle?: string;
+        emptyDescription?: string;
+        emptyTagTitle?: string;
+        emptyTagDescription?: string;
+        showAll?: string;
+        gallery?: string;
+        openImage?: string;
+        language?: string;
+        notTranslated?: string;
+        notFound?: string;
+        backHome?: string;
+      } | null;
+      translatedLabels: {
+        onThisPage?: string;
+        relatedEntries?: string;
+        tags?: string;
+        allTags?: string;
+        photos?: string;
+        emptyTitle?: string;
+        emptyDescription?: string;
+        emptyTagTitle?: string;
+        emptyTagDescription?: string;
+        showAll?: string;
+        gallery?: string;
+        openImage?: string;
+        language?: string;
+        notTranslated?: string;
+        notFound?: string;
+        backHome?: string;
+      } | null;
+      search: boolean | true;
     }
   | null;
 
 // Source: ../web/app/utils/queries.ts
 // Variable: SITEMAP_QUERY
-// Query: {  "pages": *[_type == "page" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },  "collections": *[_type == "collection" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },  "entries": *[_type == "entry" && defined(slug.current) && defined(collection->slug.current) && seo.noIndex != true]{    "path": "/" + collection->slug.current + "/" + slug.current,    _updatedAt  }}
-export type SITEMAP_QUERY_RESULT = {
-  pages: Array<{
-    slug: string;
-    _updatedAt: string;
-  }>;
-  collections: Array<{
-    slug: string;
-    _updatedAt: string;
-  }>;
-  entries: Array<{
-    path: string;
-    _updatedAt: string;
-  }>;
-};
+// Query: *[  _type in ["page", "collection", "entry"]  && defined(slug.current)  && (_type != "entry" || defined(collection->slug.current))  && coalesce(language, $defaultLanguage) in $languages  && seo.noIndex != true]{  "path": select(  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current),  _updatedAt,  "translations": *[_type == "translation.metadata" && references(^._id)][0].translations[language in $languages]{  language,  "path": value->{ "path": select(  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current) }.path}[defined(path)]}
+export type SITEMAP_QUERY_RESULT = Array<
+  | {
+      path: string | null | "" | "/";
+      _updatedAt: string;
+      translations: Array<{
+        language: string;
+        path: string | "" | "/";
+      }> | null;
+    }
+  | {
+      path: string | null;
+      _updatedAt: string;
+      translations: Array<{
+        language: string;
+        path: string | "" | "/";
+      }> | null;
+    }
+>;
+
+// Source: ../web/app/utils/queries.ts
+// Variable: SEARCH_QUERY
+// Query: *[  _type in ["page", "collection", "entry"]  && defined(slug.current)  && (_type != "entry" || defined(collection->slug.current))  && seo.noIndex != true  && (    coalesce(language, $defaultLanguage) == $language    || (($fallback && coalesce(language, $defaultLanguage) == $defaultLanguage) && !defined(*[_type == "translation.metadata" && references(^._id)][0].translations[language == $language][0]))  )  && (title match $terms || excerpt match $terms || description match $terms || pt::text(body) match $terms || blocks[].title match $terms || blocks[].description match $terms)]| score(  boost(title match $terms, 5),  boost(excerpt match $terms, 2),  boost(description match $terms, 2),  pt::text(body) match $terms,  blocks[].title match $terms,  blocks[].description match $terms)| order(_score desc)[0...10]{  _id,  _type,  title,  "path": select(  _type == "page" && slug.current == "home" => select(select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") == "" => "/", select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "")),  _type == "entry" => select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + collection->slug.current + "/" + slug.current,  select(  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,  $fallback && $language != $defaultLanguage => "/" + string($language),  "") + "/" + slug.current),  "description": coalesce(excerpt, description, seo.description),  "collection": collection->title}
+export type SEARCH_QUERY_RESULT = Array<
+  | {
+      _id: string;
+      _type: "collection";
+      title: string;
+      path: string | null;
+      description: string | null;
+      collection: null;
+    }
+  | {
+      _id: string;
+      _type: "entry";
+      title: string;
+      path: string | null;
+      description: string | null;
+      collection: string;
+    }
+  | {
+      _id: string;
+      _type: "page";
+      title: string;
+      path: string | null | "" | "/";
+      description: string | null;
+      collection: null;
+    }
+>;
 
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    '{\n  "page": *[_type == "page" && slug.current == $path][0]{\n    _id,\n    _type,\n    title,\n    seo,\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  defined(image) => { image{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  defined(images) => { images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  _type == "cardGrid" => { cards[]{ ..., image{\n  ...,\n  "lqip": asset->metadata.lqip\n}, link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => { body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n} }\n}\n  },\n  "collection": *[_type == "collection" && slug.current == $path][0]{\n    _id,\n    _type,\n    title,\n    "slug": slug.current,\n    description,\n    entryLabel,\n    layout,\n    sort,\n    tagFilter,\n    seo,\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  defined(image) => { image{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  defined(images) => { images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  _type == "cardGrid" => { cards[]{ ..., image{\n  ...,\n  "lqip": asset->metadata.lqip\n}, link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => { body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n} }\n},\n    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current)] | order(publishedAt desc){\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  "entry": *[_type == "entry" && slug.current == $child && collection->slug.current == $parent][0]{\n    _id,\n    _type,\n    title,\n    "slug": slug.current,\n    publishedAt,\n    _updatedAt,\n    excerpt,\n    coverImage{\n  ...,\n  "lqip": asset->metadata.lqip\n},\n    images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n},\n    tags,\n    details,\n    sections,\n    seo,\n    "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter, toc },\n    authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n},\n    body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n},\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  defined(image) => { image{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  defined(images) => { images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  _type == "cardGrid" => { cards[]{ ..., image{\n  ...,\n  "lqip": asset->metadata.lqip\n}, link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => { body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n} }\n},\n    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && count(tags[@ in ^.^.tags]) > 0]\n      | order(publishedAt desc)[0...3]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  }\n}': ROUTE_QUERY_RESULT;
-    '*[_id == "settings"][0]{\n  title,\n  description,\n  logo,\n  ogImage,\n  navigation[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  headerLinks[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  footerColumns[]{\n    _key,\n    label,\n    links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n}\n  },\n  footerText,\n  socialLinks\n}': SETTINGS_QUERY_RESULT;
-    '{\n  "pages": *[_type == "page" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },\n  "collections": *[_type == "collection" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },\n  "entries": *[_type == "entry" && defined(slug.current) && defined(collection->slug.current) && seo.noIndex != true]{\n    "path": "/" + collection->slug.current + "/" + slug.current,\n    _updatedAt\n  }\n}': SITEMAP_QUERY_RESULT;
+    '{\n  "page": (coalesce(\n  *[_type == "page" && slug.current == $path && coalesce(language, $defaultLanguage) == $language][0],\n  *[_type == "page" && slug.current == $path && ($fallback && coalesce(language, $defaultLanguage) == $defaultLanguage)][0]\n)){\n    _id,\n    _type,\n    "language": coalesce(language, $defaultLanguage),\n    title,\n    seo,\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n},\n  defined(image) => { image{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  defined(images) => { images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  _type == "cardGrid" => { cards[]{ ..., image{\n  ...,\n  "lqip": asset->metadata.lqip\n}, link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n},\n    "collection": (coalesce(*[_type == "translation.metadata" && references(^.collection._ref)][0].translations[language == $language][0].value->, collection->)){\n      title,\n      "slug": slug.current,\n      layout,\n      sort,\n      "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current) && coalesce(language, $defaultLanguage) == coalesce(^.language, $defaultLanguage) && (!defined(^.^.tag) || ^.^.tag in tags)]\n        | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n),\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n    }\n  },\n  _type == "richText" => { body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n} }\n} }\n},\n    "translations": *[_type == "translation.metadata" && references(^._id)][0].translations[language in $languages]{\n  language,\n  "path": value->{ "path": select(\n  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),\n  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,\n  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current\n) }.path\n}[defined(path)]\n  },\n  "collection": (coalesce(\n  *[_type == "collection" && slug.current == $path && coalesce(language, $defaultLanguage) == $language][0],\n  *[_type == "collection" && slug.current == $path && ($fallback && coalesce(language, $defaultLanguage) == $defaultLanguage)][0]\n)){\n    _id,\n    _type,\n    "language": coalesce(language, $defaultLanguage),\n    title,\n    "slug": slug.current,\n    "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n),\n    description,\n    entryLabel,\n    layout,\n    sort,\n    tagFilter,\n    seo,\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n},\n  defined(image) => { image{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  defined(images) => { images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  _type == "cardGrid" => { cards[]{ ..., image{\n  ...,\n  "lqip": asset->metadata.lqip\n}, link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n},\n    "collection": (coalesce(*[_type == "translation.metadata" && references(^.collection._ref)][0].translations[language == $language][0].value->, collection->)){\n      title,\n      "slug": slug.current,\n      layout,\n      sort,\n      "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current) && coalesce(language, $defaultLanguage) == coalesce(^.language, $defaultLanguage) && (!defined(^.^.tag) || ^.^.tag in tags)]\n        | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n),\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n    }\n  },\n  _type == "richText" => { body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n} }\n} }\n},\n    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current) && coalesce(language, $defaultLanguage) == coalesce(^.language, $defaultLanguage)] | order(publishedAt desc){\n  _id,\n  title,\n  "slug": slug.current,\n  "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n),\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n},\n    "translations": *[_type == "translation.metadata" && references(^._id)][0].translations[language in $languages]{\n  language,\n  "path": value->{ "path": select(\n  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),\n  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,\n  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current\n) }.path\n}[defined(path)]\n  },\n  "entry": (coalesce(\n  *[_type == "entry" && slug.current == $child && collection->slug.current == $parent && coalesce(language, $defaultLanguage) == $language][0],\n  *[_type == "entry" && slug.current == $child && collection->slug.current == $parent && ($fallback && coalesce(language, $defaultLanguage) == $defaultLanguage)][0]\n)){\n    _id,\n    _type,\n    "language": coalesce(language, $defaultLanguage),\n    title,\n    "slug": slug.current,\n    publishedAt,\n    _updatedAt,\n    excerpt,\n    coverImage{\n  ...,\n  "lqip": asset->metadata.lqip\n},\n    images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n},\n    tags,\n    details,\n    sections,\n    seo,\n    "collection": collection->{ title, "slug": slug.current, "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n), entryLabel, showRelated, tagFilter, toc, "translations": *[_type == "translation.metadata" && references(^._id)][0].translations[language in $languages]{\n  language,\n  "path": value->{ "path": select(\n  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),\n  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,\n  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current\n) }.path\n}[defined(path)] },\n    authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n},\n    body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n} }\n},\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n},\n  defined(image) => { image{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  defined(images) => { images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  _type == "cardGrid" => { cards[]{ ..., image{\n  ...,\n  "lqip": asset->metadata.lqip\n}, link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n},\n    "collection": (coalesce(*[_type == "translation.metadata" && references(^.collection._ref)][0].translations[language == $language][0].value->, collection->)){\n      title,\n      "slug": slug.current,\n      layout,\n      sort,\n      "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current) && coalesce(language, $defaultLanguage) == coalesce(^.language, $defaultLanguage) && (!defined(^.^.tag) || ^.^.tag in tags)]\n        | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n),\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n    }\n  },\n  _type == "richText" => { body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n} }\n} }\n},\n    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && coalesce(language, $defaultLanguage) == coalesce(^.language, $defaultLanguage) && count(tags[@ in ^.^.tags]) > 0]\n      | order(publishedAt desc)[0...3]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n),\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n},\n    "translations": *[_type == "translation.metadata" && references(^._id)][0].translations[language in $languages]{\n  language,\n  "path": value->{ "path": select(\n  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),\n  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,\n  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current\n) }.path\n}[defined(path)]\n  }\n}': ROUTE_QUERY_RESULT;
+    '*[_id == "settings"][0]{\n  "defaultLanguage": coalesce(language, "en"),\n  "languages": select(multilingual == true => languages, []),\n  "fallback": fallback != false\n}': LANGUAGES_QUERY_RESULT;
+    '*[_id == "settings"][0]{\n  "title": coalesce(*[_id == $translationId][0].title, title),\n  "description": coalesce(*[_id == $translationId][0].description, description),\n  logo,\n  ogImage,\n  "navigation": (coalesce(*[_id == $translationId][0].navigation, navigation))[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n},\n  "headerLinks": (coalesce(*[_id == $translationId][0].headerLinks, headerLinks))[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n},\n  "footerColumns": (coalesce(*[_id == $translationId][0].footerColumns, footerColumns))[]{\n    _key,\n    label,\n    links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => (coalesce(*[_type == "translation.metadata" && references(^.page._ref)][0].translations[language == $language][0].value->, page->)){ "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n) }.path,\n    href\n  )\n}\n  },\n  "footerText": coalesce(*[_id == $translationId][0].footerText, footerText),\n  socialLinks,\n  labels,\n  "translatedLabels": *[_id == $translationId][0].labels,\n  "search": search != false\n}': SETTINGS_QUERY_RESULT;
+    '*[\n  _type in ["page", "collection", "entry"]\n  && defined(slug.current)\n  && (_type != "entry" || defined(collection->slug.current))\n  && coalesce(language, $defaultLanguage) in $languages\n  && seo.noIndex != true\n]{\n  "path": select(\n  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),\n  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,\n  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current\n),\n  _updatedAt,\n  "translations": *[_type == "translation.metadata" && references(^._id)][0].translations[language in $languages]{\n  language,\n  "path": value->{ "path": select(\n  _type == "page" && slug.current == "home" => select(select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") == "" => "/", select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")),\n  _type == "entry" => select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + collection->slug.current + "/" + slug.current,\n  select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "") + "/" + slug.current\n) }.path\n}[defined(path)]\n}': SITEMAP_QUERY_RESULT;
+    '*[\n  _type in ["page", "collection", "entry"]\n  && defined(slug.current)\n  && (_type != "entry" || defined(collection->slug.current))\n  && seo.noIndex != true\n  && (\n    coalesce(language, $defaultLanguage) == $language\n    || (($fallback && coalesce(language, $defaultLanguage) == $defaultLanguage) && !defined(*[_type == "translation.metadata" && references(^._id)][0].translations[language == $language][0]))\n  )\n  && (title match $terms || excerpt match $terms || description match $terms || pt::text(body) match $terms || blocks[].title match $terms || blocks[].description match $terms)\n]\n| score(\n  boost(title match $terms, 5),\n  boost(excerpt match $terms, 2),\n  boost(description match $terms, 2),\n  pt::text(body) match $terms,\n  blocks[].title match $terms,\n  blocks[].description match $terms\n)\n| order(_score desc)[0...10]{\n  _id,\n  _type,\n  title,\n  "path": select(\n  _type == "page" && slug.current == "home" => select(select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) == "" => "/", select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n)),\n  _type == "entry" => select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + collection->slug.current + "/" + slug.current,\n  select(\n  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,\n  $fallback && $language != $defaultLanguage => "/" + string($language),\n  ""\n) + "/" + slug.current\n),\n  "description": coalesce(excerpt, description, seo.description),\n  "collection": collection->title\n}': SEARCH_QUERY_RESULT;
   }
 }
 // Lets @sanity/client releases that predate the global registry read it too

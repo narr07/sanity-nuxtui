@@ -1,8 +1,32 @@
-import type { StructureResolver } from 'sanity/structure'
+import type { StructureBuilder, StructureResolver } from 'sanity/structure'
+import type { SanityClient } from 'sanity'
+import { CogIcon } from '@sanity/icons/Cog'
 import { DocumentsIcon } from '@sanity/icons/Documents'
 import { FolderIcon } from '@sanity/icons/Folder'
+import { SETTINGS_TRANSLATION_PREFIX } from './schemaTypes/documents/settings'
+import { API_VERSION, getLanguages } from './schemaTypes/shared/language'
 
-export const structure: StructureResolver = S =>
+// One language: the settings document. Several: the main settings plus a copy
+// per extra language ("settings-<language>") for translated menus and text.
+async function settingsChild(S: StructureBuilder, client: SanityClient) {
+  const [main, ...others] = await getLanguages(client)
+  const mainSettings = S.document().schemaType('settings').documentId('settings')
+  if (!others.length) return mainSettings
+  return S.list()
+    .id('settings-languages')
+    .title('Site Settings')
+    .items([
+      S.listItem().id('settings').title(`Main settings (${main?.title})`).icon(CogIcon).child(mainSettings),
+      S.divider(),
+      ...others.map(language => S.listItem()
+        .id(`${SETTINGS_TRANSLATION_PREFIX}${language.id}`)
+        .title(language.title)
+        .icon(CogIcon)
+        .child(S.document().schemaType('settings').documentId(`${SETTINGS_TRANSLATION_PREFIX}${language.id}`)))
+    ])
+}
+
+export const structure: StructureResolver = (S, { getClient }) =>
   S.list()
     .id('root')
     .title('Content')
@@ -54,5 +78,9 @@ export const structure: StructureResolver = S =>
       S.documentTypeListItem('author').title('Authors'),
       S.divider(),
       // Singleton registered in sanity.config.ts → document.singletons
-      S.listItem().singleton('settings')
+      S.listItem()
+        .id('settings')
+        .title('Site Settings')
+        .icon(CogIcon)
+        .child(() => settingsChild(S, getClient({ apiVersion: API_VERSION })))
     ])

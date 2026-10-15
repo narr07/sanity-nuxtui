@@ -1,7 +1,66 @@
 import { defineQuery } from 'groq'
 
-// Resolves a `link` object to Nuxt UI ButtonProps-ready data. Internal references
-// become paths: pages → /<slug>, collections → /<slug>, entries → /<collection>/<slug>.
+// Languages (Site Settings → Languages). Pages, collections and entries have a
+// `language`; documents created before languages were turned on have none and
+// belong to the site language. Queries take these parameters:
+//   $language         the language of the current URL
+//   $defaultLanguage  the site language, served without a URL prefix
+//   $languages        every language the site serves
+//   $fallback         show untranslated pages in the site language (/id/pricing);
+//                     links to untranslated pages then stay in the current language
+// Fragments end in `as const`: useSanityQuery finds a query's result type by its
+// exact text, which only survives as a literal type.
+export const IN_LANGUAGE = /* groq */ `coalesce(language, $defaultLanguage) == $language` as const
+
+// Untranslated documents shown in another language when $fallback is on
+const AS_FALLBACK = /* groq */ `($fallback && coalesce(language, $defaultLanguage) == $defaultLanguage)` as const
+
+// Entries in the same language as the document in the parent scope (a collection or entry)
+const SAME_LANGUAGE = /* groq */ `coalesce(language, $defaultLanguage) == coalesce(^.language, $defaultLanguage)` as const
+
+// URL prefix of the document in scope: "/id" for other languages, "" for the site language
+const OWN_PREFIX = /* groq */ `select(coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language, "")` as const
+
+// The same, but with $fallback on, site-language documents take the current prefix
+const VIEW_PREFIX = /* groq */ `select(
+  coalesce(language, $defaultLanguage) != $defaultLanguage => "/" + language,
+  $fallback && $language != $defaultLanguage => "/" + string($language),
+  ""
+)` as const
+
+// URL of the page, collection or entry in scope: /about, /id/about, /blog/post, /id (homepage)
+export const PATH = /* groq */ `select(
+  _type == "page" && slug.current == "home" => select(${OWN_PREFIX} == "" => "/", ${OWN_PREFIX}),
+  _type == "entry" => ${OWN_PREFIX} + "/" + collection->slug.current + "/" + slug.current,
+  ${OWN_PREFIX} + "/" + slug.current
+)` as const
+
+// The same URL as seen from the current page: with $fallback on, untranslated
+// documents keep the language of the visitor (/id/pricing instead of /pricing)
+const VIEW_PATH = /* groq */ `select(
+  _type == "page" && slug.current == "home" => select(${VIEW_PREFIX} == "" => "/", ${VIEW_PREFIX}),
+  _type == "entry" => ${VIEW_PREFIX} + "/" + collection->slug.current + "/" + slug.current,
+  ${VIEW_PREFIX} + "/" + slug.current
+)` as const
+
+// The document a reference field points at, or its translation in the current
+// language. Links and lists can point at one language and still follow the visitor.
+const translated = <F extends string>(field: F) => /* groq */ `coalesce(*[_type == "translation.metadata" && references(^.${field}._ref)][0].translations[language == $language][0].value->, ${field}->)` as const
+
+// Every language version of the document in scope, for hreflang and the language switcher
+export const TRANSLATIONS = /* groq */ `*[_type == "translation.metadata" && references(^._id)][0].translations[language in $languages]{
+  language,
+  "path": value->{ "path": ${PATH} }.path
+}[defined(path)]` as const
+
+// A document of `type` in the current language, or in the site language with $fallback on
+const find = <T extends string, F extends string>(type: T, filter: F) => /* groq */ `coalesce(
+  *[_type == "${type}" && ${filter} && ${IN_LANGUAGE}][0],
+  *[_type == "${type}" && ${filter} && ${AS_FALLBACK}][0]
+)` as const
+
+// Resolves a `link` object to Nuxt UI ButtonProps-ready data. Internal links
+// become paths in the current language when the target has a translation.
 const LINK = /* groq */ `{
   _key,
   label,
@@ -11,41 +70,37 @@ const LINK = /* groq */ `{
   color,
   variant,
   "to": select(
-    linkType == "internal" => select(
-      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,
-      page->_type == "page" && page->slug.current == "home" => "/",
-      "/" + page->slug.current
-    ),
+    linkType == "internal" => (${translated('page')}){ "path": ${VIEW_PATH} }.path,
     href
   )
-}`
+}` as const
 
 // Images carry their low-quality placeholder (a tiny base64 image) from the asset metadata
 const IMAGE = /* groq */ `{
   ...,
   "lqip": asset->metadata.lqip
-}`
+}` as const
 
 // Rich text with image placeholders and resolved links in callouts
 const BODY = /* groq */ `{
   ...,
   _type == "image" => { "lqip": asset->metadata.lqip },
   _type == "callout" => { links[]${LINK} }
-}`
+}` as const
 
 const AUTHOR = /* groq */ `{
   _id,
   name,
   role,
   avatar
-}`
+}` as const
 
 // Everything a card needs, whatever the collection layout
 const ENTRY_CARD = /* groq */ `{
   _id,
   title,
   "slug": slug.current,
-  "path": "/" + collection->slug.current + "/" + slug.current,
+  "path": ${VIEW_PATH},
   publishedAt,
   excerpt,
   "cover": coalesce(coverImage, images[0])${IMAGE},
@@ -53,7 +108,7 @@ const ENTRY_CARD = /* groq */ `{
   tags,
   order,
   authors[]->${AUTHOR}
-}`
+}` as const
 
 // Page-builder blocks, with links and dynamic lists resolved
 const BLOCKS = /* groq */ `{
@@ -65,28 +120,38 @@ const BLOCKS = /* groq */ `{
   _type == "pricing" => { plans[]{ ..., button${LINK} } },
   _type == "collectionList" => {
     link${LINK},
-    "collection": collection->{ title, "slug": slug.current, layout, sort },
-    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]
-      | order(publishedAt desc)[0...100]${ENTRY_CARD}
+    "collection": (${translated('collection')}){
+      title,
+      "slug": slug.current,
+      layout,
+      sort,
+      "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current) && ${SAME_LANGUAGE} && (!defined(^.^.tag) || ^.^.tag in tags)]
+        | order(publishedAt desc)[0...100]${ENTRY_CARD}
+    }
   },
   _type == "richText" => { body[]${BODY} }
-}`
+}` as const
 
 // One query per URL: /<path> is a page or a collection, /<parent>/<child> may be
-// an entry. Pages win when a page and an entry share a path.
+// an entry. Pages win when a page and an entry share a path. $path is the URL
+// without the language prefix. `language` tells a fallback (site language) apart.
 export const ROUTE_QUERY = defineQuery(`{
-  "page": *[_type == "page" && slug.current == $path][0]{
+  "page": (${find('page', 'slug.current == $path')}){
     _id,
     _type,
+    "language": coalesce(language, $defaultLanguage),
     title,
     seo,
-    blocks[]${BLOCKS}
+    blocks[]${BLOCKS},
+    "translations": ${TRANSLATIONS}
   },
-  "collection": *[_type == "collection" && slug.current == $path][0]{
+  "collection": (${find('collection', 'slug.current == $path')}){
     _id,
     _type,
+    "language": coalesce(language, $defaultLanguage),
     title,
     "slug": slug.current,
+    "path": ${VIEW_PATH},
     description,
     entryLabel,
     layout,
@@ -94,11 +159,13 @@ export const ROUTE_QUERY = defineQuery(`{
     tagFilter,
     seo,
     blocks[]${BLOCKS},
-    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current)] | order(publishedAt desc)${ENTRY_CARD}
+    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current) && ${SAME_LANGUAGE}] | order(publishedAt desc)${ENTRY_CARD},
+    "translations": ${TRANSLATIONS}
   },
-  "entry": *[_type == "entry" && slug.current == $child && collection->slug.current == $parent][0]{
+  "entry": (${find('entry', 'slug.current == $child && collection->slug.current == $parent')}){
     _id,
     _type,
+    "language": coalesce(language, $defaultLanguage),
     title,
     "slug": slug.current,
     publishedAt,
@@ -110,37 +177,86 @@ export const ROUTE_QUERY = defineQuery(`{
     details,
     sections,
     seo,
-    "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter, toc },
+    "collection": collection->{ title, "slug": slug.current, "path": ${VIEW_PATH}, entryLabel, showRelated, tagFilter, toc, "translations": ${TRANSLATIONS} },
     authors[]->${AUTHOR},
     body[]${BODY},
     blocks[]${BLOCKS},
-    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && count(tags[@ in ^.^.tags]) > 0]
-      | order(publishedAt desc)[0...3]${ENTRY_CARD}
+    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && ${SAME_LANGUAGE} && count(tags[@ in ^.^.tags]) > 0]
+      | order(publishedAt desc)[0...3]${ENTRY_CARD},
+    "translations": ${TRANSLATIONS}
   }
 }`)
 
+// The site language and the other languages, when "Multiple languages" is on
+export const LANGUAGES_QUERY = defineQuery(`*[_id == "settings"][0]{
+  "defaultLanguage": coalesce(language, "en"),
+  "languages": select(multilingual == true => languages, []),
+  "fallback": fallback != false
+}`)
+
+// A field from the settings of the current language ("settings-<language>",
+// see $translationId), falling back to the main settings when it is empty.
+const setting = <F extends string>(field: F) => /* groq */ `coalesce(*[_id == $translationId][0].${field}, ${field})` as const
+
 export const SETTINGS_QUERY = defineQuery(`*[_id == "settings"][0]{
-  title,
-  description,
+  "title": ${setting('title')},
+  "description": ${setting('description')},
   logo,
   ogImage,
-  navigation[]${LINK},
-  headerLinks[]${LINK},
-  footerColumns[]{
+  "navigation": (${setting('navigation')})[]${LINK},
+  "headerLinks": (${setting('headerLinks')})[]${LINK},
+  "footerColumns": (${setting('footerColumns')})[]{
     _key,
     label,
     links[]${LINK}
   },
-  footerText,
-  socialLinks
+  "footerText": ${setting('footerText')},
+  socialLinks,
+  labels,
+  "translatedLabels": *[_id == $translationId][0].labels,
+  "search": search != false
 }`)
 
-// Every public URL, for /sitemap.xml (see server/api/__sitemap__/urls.ts)
-export const SITEMAP_QUERY = defineQuery(`{
-  "pages": *[_type == "page" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },
-  "collections": *[_type == "collection" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },
-  "entries": *[_type == "entry" && defined(slug.current) && defined(collection->slug.current) && seo.noIndex != true]{
-    "path": "/" + collection->slug.current + "/" + slug.current,
-    _updatedAt
-  }
+// Every public URL in every language, for /sitemap.xml (server/api/__sitemap__/urls.ts)
+export const SITEMAP_QUERY = defineQuery(`*[
+  _type in ["page", "collection", "entry"]
+  && defined(slug.current)
+  && (_type != "entry" || defined(collection->slug.current))
+  && coalesce(language, $defaultLanguage) in $languages
+  && seo.noIndex != true
+]{
+  "path": ${PATH},
+  _updatedAt,
+  "translations": ${TRANSLATIONS}
+}`)
+
+// Site search (components/SiteSearch.vue). $terms holds one "word*" pattern per
+// word, all of which must match. Covers the current language and, with
+// $fallback on, untranslated pages shown in it.
+export const SEARCH_QUERY = defineQuery(`*[
+  _type in ["page", "collection", "entry"]
+  && defined(slug.current)
+  && (_type != "entry" || defined(collection->slug.current))
+  && seo.noIndex != true
+  && (
+    ${IN_LANGUAGE}
+    || (${AS_FALLBACK} && !defined(*[_type == "translation.metadata" && references(^._id)][0].translations[language == $language][0]))
+  )
+  && (title match $terms || excerpt match $terms || description match $terms || pt::text(body) match $terms || blocks[].title match $terms || blocks[].description match $terms)
+]
+| score(
+  boost(title match $terms, 5),
+  boost(excerpt match $terms, 2),
+  boost(description match $terms, 2),
+  pt::text(body) match $terms,
+  blocks[].title match $terms,
+  blocks[].description match $terms
+)
+| order(_score desc)[0...10]{
+  _id,
+  _type,
+  title,
+  "path": ${VIEW_PATH},
+  "description": coalesce(excerpt, description, seo.description),
+  "collection": collection->title
 }`)

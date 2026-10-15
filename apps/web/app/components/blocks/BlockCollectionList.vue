@@ -7,9 +7,10 @@ const props = defineProps<{
   index: number
 }>()
 
-const entries = computed(() => sortEntries(props.block.entries ?? [], props.block.collection?.sort)
+const entries = computed(() => sortEntries(props.block.collection?.entries ?? [], props.block.collection?.sort)
   .slice(0, props.block.limit ?? 3))
 const viewAll = computed(() => toButton(props.block.link))
+const t = useLabels()
 </script>
 
 <template>
@@ -37,8 +38,8 @@ const viewAll = computed(() => toButton(props.block.link))
     <UEmpty
       v-else
       icon="i-lucide-folder-open"
-      title="Nothing here yet"
-      description="Entries added to this collection will show up here."
+      :title="t('emptyTitle')"
+      :description="t('emptyDescription')"
     />
 
     <div

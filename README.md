@@ -7,6 +7,8 @@ A block-based website builder. Editors compose pages from blocks in **Sanity Stu
 - **Flexible entries**: rich text, photo galleries with a lightbox, key details (Client, Year, …), authors, tags and page-builder blocks, all optional
 - **Site settings**: logo, navigation, header buttons, footer columns and social links, all editable
 - **Visual Editing**: click any text in the Presentation tool to edit it, with live draft preview
+- **Site search**: a search palette (Ctrl/⌘ + K) over pages, collections and entries, ranked by Sanity, in the language being viewed
+- **Multiple languages, optional**: switch them on in Site Settings. Each page, collection and entry is translated as its own document, URLs get a language prefix (`/id/about`), and the site adds a language switcher, hreflang links and a multilingual sitemap
 - **Images** through [Nuxt Image](https://image.nuxt.com/providers/sanity) and the Sanity CDN: responsive `srcset`, Studio crop and hotspot, and a pixelated placeholder while loading
 - **Code blocks** like the Nuxt UI docs: syntax highlighting, file icons, copy button, highlighted lines and tabbed code groups
 - **SEO** with [Nuxt SEO](https://nuxtseo.com): sitemap from your content, robots.txt, schema.org, and **OG images generated in your theme** for pages without an image
@@ -154,7 +156,33 @@ Use `stegaClean()` on any value that drives logic (icons, colors, variants, URLs
 
 ### Links
 
-The `link` object (buttons, navigation, footer) points to a page, collection or entry, or to any URL, anchor (`#faq`), route (`/blog`) or `mailto:`. The `LINK` projection in `queries.ts` resolves references to paths, so components only see a `to` string.
+The `link` object (buttons, navigation, footer) points to a page, collection or entry, or to any URL, anchor (`#faq`), route (`/blog`) or `mailto:`. The `LINK` projection in `queries.ts` resolves references to paths, so components only see a `to` string. When the target has a translation in the visitor's language, the link goes there.
+
+## Languages
+
+The site has one language until you turn on more. Everything is set in the Studio:
+
+1. **Site Settings → Languages**: set the **Site language** (a tag such as `en`, `id` or `pt-BR`), turn on **Multiple languages** and add the **Other languages**.
+2. Reload the Studio. Pages, collections and entries now show a **Translations** menu in the document header.
+3. Open a document, pick a language in the menu, then translate the copy that opens (including its slug) and publish it.
+
+| | Site language | Other languages |
+| --- | --- | --- |
+| URL | `/about`, `/blog/post` | `/id/about`, `/id/blog/post` |
+| Homepage | `/` | `/id` |
+
+How it works:
+
+- **One document per language** ([@sanity/document-internationalization](https://github.com/sanity-io/plugins/tree/main/plugins/%40sanity/document-internationalization)). Translations are linked by a `translation.metadata` document, so each language can have its own blocks, slugs and SEO, and is published on its own.
+- **Collections first**: translate a collection before its entries. A translated entry moves to the collection in its own language automatically.
+- **Site Settings per language**: Site Settings becomes a list with the main settings and one copy per language. Copies only need the fields that change (menu labels, footer text, interface text); empty fields fall back to the main settings. Links in the menu can stay as they are: they follow the visitor's language.
+- **Interface text**: text written by the site itself ("On this page", "Related posts", the empty states, …) is under **Site Settings → Interface text**. Nuxt UI's own text (close buttons, carousel arrows) comes from its [built-in locales](https://ui.nuxt.com/docs/getting-started/integrations/i18n/nuxt), loaded only for the language being viewed.
+- **SEO**: `<html lang>`, `og:locale`, `hreflang` links between translations (with `x-default` on the site language) and sitemap entries with their alternatives.
+- **Existing content**: documents created before languages were turned on have no language and belong to the site language. To translate one, open its Translations menu and choose its language first.
+- **Untranslated pages**: with **Show untranslated pages in the site language** on (the default), `/id/pricing` shows the page in the site language with the menus and interface text of the other language, a short note, and `noindex`, and links keep visitors in their language. Off, such URLs return 404 and the language switcher leads to the homepage of that language.
+- **Turning it off** hides the other languages from the site; their documents stay in the dataset.
+
+Language tags are not limited to Nuxt UI's list: a language without a Nuxt UI locale uses the closest match (`pt-BR` → `pt_br` → `pt`) or English.
 
 ## Visual Editing
 
@@ -170,6 +198,12 @@ Cached pages and drafts in production:
 
 - **Vercel**: one deployment does both. Pages stay cached with ISR, and `/preview/enable` also sets Vercel's `__prerender_bypass` cookie, so the Presentation tool skips the cache and sees drafts ([`server/preview/enable.ts`](apps/web/server/preview/enable.ts)).
 - **Other hosts** (Cloudflare, Node): caching is turned off when a read token is set, because their cache cannot be skipped for a single visitor. Use two deployments of `apps/web`: the public site without a token, and a preview deployment with the token that the Studio's `SANITY_STUDIO_PREVIEW_URL` points to.
+
+## Search
+
+The search button in the header (and Ctrl/⌘ + K) opens Nuxt UI's [ContentSearch](https://ui.nuxt.com/docs/components/content-search) palette. Results come from `SEARCH_QUERY` in `queries.ts`: GROQ text matching on titles, excerpts, descriptions, rich text and block headings, ranked with `score()`, limited to the language being viewed. Pages marked "Hide from search engines" are left out.
+
+The browser queries the Sanity CDN directly, so search also works on static hosting. That needs a public dataset and the site's origin in your CORS settings (see [Deployment](#deployment)). Turn search off in **Site Settings → Header → Search**.
 
 ## Images
 

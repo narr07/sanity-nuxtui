@@ -2,8 +2,9 @@ import { defineArrayMember, defineField, defineType, type SlugValidationContext 
 import { DocumentTextIcon } from '@sanity/icons/DocumentText'
 import { ALL_ENTRY_FIELDS, ENTRY_FIELDS, usesField } from '../shared/entry-fields'
 import { imageField } from '../shared/fields'
+import { API_VERSION, languageField, languagePrefix } from '../shared/language'
 
-const API_VERSION = '2026-10-01'
+const SITE_LANGUAGE = '*[_id == "settings"][0].language, "en"'
 
 // Slugs only need to be unique inside their collection: /blog/intro and
 // /projects/intro can both exist.
@@ -34,13 +35,23 @@ export const entry = defineType({
     { name: 'seo', title: 'SEO' }
   ],
   fields: [
+    languageField,
     defineField({
       name: 'collection',
       title: 'Collection',
       type: 'reference',
       to: [{ type: 'collection' }],
       group: ['content', 'meta'],
-      options: { disableNew: true },
+      description: 'Collections in the language of this entry',
+      options: {
+        disableNew: true,
+        // Documents created before languages were turned on have no language:
+        // they belong to the site language
+        filter: ({ document }) => ({
+          filter: `coalesce(language, ${SITE_LANGUAGE}) == coalesce($language, ${SITE_LANGUAGE})`,
+          params: { language: document.language ?? null }
+        })
+      },
       validation: rule => rule.required()
     }),
     defineField({ name: 'title', title: 'Title', type: 'string', group: 'content', validation: rule => rule.required() }),
@@ -170,11 +181,12 @@ export const entry = defineType({
       collection: 'collection.title',
       date: 'publishedAt',
       cover: 'coverImage',
-      photo: 'images.0'
+      photo: 'images.0',
+      language: 'language'
     },
-    prepare: ({ title, collection, date, cover, photo }) => ({
+    prepare: ({ title, collection, date, cover, photo, language }) => ({
       title,
-      subtitle: [collection, date ? new Date(date).toLocaleDateString('en-US', { dateStyle: 'medium' }) : null].filter(Boolean).join(' · '),
+      subtitle: languagePrefix(language) + [collection, date ? new Date(date).toLocaleDateString('en-US', { dateStyle: 'medium' }) : null].filter(Boolean).join(' · '),
       media: cover ?? photo
     })
   }

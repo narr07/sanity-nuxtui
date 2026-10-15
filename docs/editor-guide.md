@@ -124,6 +124,18 @@ In any rich text field, use **+** to insert:
 
 Social links need an icon such as `i-simple-icons-instagram`, `i-simple-icons-x` or `i-simple-icons-linkedin`.
 
+## Languages
+
+The site can be published in several languages. An administrator turns this on in **Site Settings → Languages**; reload the Studio afterwards.
+
+- **Translate a page, collection or entry**: open it, use the **Translations** menu at the top of the document and pick a language. A copy opens in that language; translate the text and the slug, then publish. Each language is published on its own.
+- **Translate collections before their entries**, so translated entries land in the right collection.
+- **Menus and footer per language**: Site Settings lists one copy per language. Fill in only what changes; empty fields use the main settings.
+- **Interface text** (headings and messages the site writes itself, such as "On this page") is under **Site Settings → Interface text**, per language.
+- **Pages not translated yet** are shown in the main language with a short note, as long as **Show untranslated pages in the site language** is on.
+
+Search (the magnifier in the header, or Ctrl/⌘ + K) finds published pages, collections and entries. It can be turned off in **Site Settings → Header**.
+
 ## SEO
 
 Every page, collection and entry has an **SEO** tab:

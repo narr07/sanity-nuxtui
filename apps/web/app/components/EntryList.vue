@@ -15,6 +15,8 @@ const props = withDefaults(defineProps<{
 })
 
 const layout = computed(() => stegaClean(props.layout) ?? 'cards')
+const t = useLabels()
+const formatDate = useFormatDate()
 
 function blogImage(entry: EntryCard) {
   return sanityImgProps(entry.cover, { width: 800, height: 450, sizes: '100vw sm:50vw lg:33vw' })
@@ -40,7 +42,7 @@ function authors(entry: EntryCard) {
       :title="entry.title"
       :description="entry.excerpt ?? undefined"
       :date="formatDate(entry.publishedAt)"
-      :to="stegaClean(entry.path)"
+      :to="stegaClean(entry.path) ?? undefined"
       :image="blogImage(entry)"
       :authors="authors(entry)"
       :badge="entry.tags?.[0] ? { label: entry.tags[0], color: 'neutral', variant: 'subtle' } : undefined"
@@ -58,7 +60,7 @@ function authors(entry: EntryCard) {
     <NuxtLink
       v-for="(entry, index) in entries"
       :key="entry._id"
-      :to="stegaClean(entry.path)"
+      :to="stegaClean(entry.path) ?? undefined"
       :style="revealIndex(index)"
       class="reveal group relative block aspect-[4/3] overflow-hidden bg-elevated focus-visible:outline-2 focus-visible:outline-primary"
     >
@@ -74,7 +76,7 @@ function authors(entry: EntryCard) {
           {{ entry.title }}
         </p>
         <p class="text-sm text-white/80">
-          {{ entry.imageCount ?? 0 }} photos<template v-if="entry.publishedAt">
+          {{ t('photos', { count: entry.imageCount ?? 0 }) }}<template v-if="entry.publishedAt">
             · {{ formatDate(entry.publishedAt) }}
           </template>
         </p>
@@ -91,7 +93,7 @@ function authors(entry: EntryCard) {
       :key="entry._id"
       :title="entry.title"
       :description="entry.excerpt ?? undefined"
-      :to="stegaClean(entry.path)"
+      :to="stegaClean(entry.path) ?? undefined"
       variant="subtle"
       reverse
       :ui="cardUi"

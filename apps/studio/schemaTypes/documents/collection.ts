@@ -1,8 +1,7 @@
 import { defineField, defineType } from 'sanity'
 import { FolderIcon } from '@sanity/icons/Folder'
 import { ALL_ENTRY_FIELDS, ENTRY_FIELDS } from '../shared/entry-fields'
-
-const API_VERSION = '2026-10-01'
+import { API_VERSION, documentLanguage, IN_LANGUAGE, isUniqueInLanguage, languageField, languagePrefix } from '../shared/language'
 
 // A collection groups entries under one URL: a collection with slug "projects"
 // lists its entries at /projects, and each entry lives at /projects/<entry-slug>.
@@ -18,6 +17,7 @@ export const collection = defineType({
     { name: 'seo', title: 'SEO' }
   ],
   fields: [
+    languageField,
     defineField({ name: 'title', title: 'Title', type: 'string', group: 'content', description: 'e.g. "Blog", "Projects", "Services"', validation: rule => rule.required() }),
     defineField({
       name: 'slug',
@@ -25,14 +25,15 @@ export const collection = defineType({
       type: 'slug',
       group: 'content',
       description: 'The list URL. "projects" → /projects, and entries at /projects/<entry-slug>',
-      options: { source: 'title', maxLength: 64 },
+      options: { source: 'title', maxLength: 64, isUnique: isUniqueInLanguage },
       validation: rule => rule.required().custom(async (slug, context) => {
         const value = slug?.current
         if (!value) return true
         if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) return 'Use lowercase letters, numbers and dashes (no slashes)'
         if (value === 'home') return '"home" is reserved for the homepage'
         const client = context.getClient({ apiVersion: API_VERSION })
-        const taken = await client.fetch<number>('count(*[_type == "page" && slug.current == $slug])', { slug: value })
+        const params = { ...(await documentLanguage(context.document, client)), slug: value }
+        const taken = await client.fetch<number>(`count(*[_type == "page" && slug.current == $slug && ${IN_LANGUAGE}])`, params)
         return taken ? `A page already uses the slug "${value}"` : true
       })
     }),
@@ -42,7 +43,7 @@ export const collection = defineType({
       title: 'Entry name',
       type: 'string',
       group: 'content',
-      description: 'Singular name of one entry, e.g. "Post", "Project". Used for labels such as "Related posts".',
+      description: 'Singular name of one entry, e.g. "Post", "Project". Used for labels such as "Related posts" (see Interface text in Site Settings).',
       initialValue: 'Entry'
     }),
     defineField({
@@ -107,7 +108,7 @@ export const collection = defineType({
     defineField({ name: 'seo', title: 'SEO', type: 'seo', group: 'seo' })
   ],
   preview: {
-    select: { title: 'title', slug: 'slug.current', layout: 'layout' },
-    prepare: ({ title, slug, layout }) => ({ title, subtitle: `/${slug ?? ''} · ${layout ?? 'cards'}` })
+    select: { title: 'title', slug: 'slug.current', layout: 'layout', language: 'language' },
+    prepare: ({ title, slug, layout, language }) => ({ title, subtitle: `${languagePrefix(language)}/${slug ?? ''} · ${layout ?? 'cards'}` })
   }
 })

@@ -17,7 +17,8 @@ const client = getCliClient({ apiVersion: '2026-10-01' })
 const replace = process.argv.includes('--replace')
 
 // "post" and "gallery" are document types from earlier versions of the template
-const CONTENT_TYPES = ['page', 'collection', 'entry', 'author', 'settings', 'post', 'gallery']
+// translation.metadata links translations; it goes with the documents it references
+const CONTENT_TYPES = ['page', 'collection', 'entry', 'author', 'settings', 'translation.metadata', 'post', 'gallery']
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -108,8 +109,12 @@ async function galleryImages(ids: number[]) {
   return Promise.all(ids.map(async id => ({ _key: key(), ...(await image(id, undefined, `Photo by ${(await photo(id)).author} on Unsplash`)) })))
 }
 
+// The example content is in English, the site language set in Site Settings
+const LOCALIZED_TYPES = ['page', 'collection', 'entry']
+
 async function create<T extends Record<string, unknown>>(doc: T) {
-  const created = await client.create(doc as T & { _type: string })
+  const language = LOCALIZED_TYPES.includes(doc._type as string) ? { language: 'en' } : {}
+  const created = await client.create({ ...doc, ...language } as T & { _type: string })
   console.log(`  created ${doc._type}: ${(doc.title ?? doc.name) as string}`)
   return created._id
 }
@@ -740,6 +745,8 @@ defineProps<{ block: BlockOf<'stats'>, index: number }>()
   await client.createOrReplace({
     _id: 'settings',
     _type: 'settings',
+    language: 'en',
+    multilingual: false,
     title: 'Sanity × Nuxt UI',
     description: 'A block-based website builder with Sanity Studio and Nuxt UI.',
     navigation: [

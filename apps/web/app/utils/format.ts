@@ -1,6 +1,7 @@
 import { stegaClean } from '@sanity/client/stega'
 
-// Fixed locale and time zone so server and client render the same string.
+// Fixed time zone so server and client render the same string. Pages format
+// dates in their own language with useFormatDate().
 const dateFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'long', timeZone: 'UTC' })
 
 // Short, stable hash for cache keys (djb2)
@@ -17,7 +18,7 @@ export function plural(word: string) {
   return `${word}s`
 }
 
-export function formatDate(value: string | null | undefined) {
+export function formatDate(value: string | null | undefined, formatter = dateFormatter) {
   const clean = stegaClean(value)
-  return clean ? dateFormatter.format(new Date(clean)) : undefined
+  return clean ? formatter.format(new Date(clean)) : undefined
 }

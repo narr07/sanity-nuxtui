@@ -9,6 +9,8 @@ const props = defineProps<{
 }>()
 
 const urlFor = useSanityImage()
+const t = useLabels()
+const formatDate = useFormatDate()
 
 // The fields this entry uses ("Fields on this entry" in the Studio). Entries
 // created before that setting existed show everything.
@@ -23,8 +25,10 @@ const toc = computed(() => {
   const headings = getHeadings(props.entry.body)
   return headings.length >= 2 ? getTocLinks(headings) : []
 })
-const collectionPath = computed(() => `/${stegaClean(props.entry.collection?.slug)}`)
-const relatedLabel = computed(() => `Related ${plural((stegaClean(props.entry.collection?.entryLabel) || 'Entry').toLowerCase())}`)
+const collectionPath = computed(() => stegaClean(props.entry.collection?.path) ?? '/')
+const relatedLabel = computed(() => t('relatedEntries', {
+  entries: plural((stegaClean(props.entry.collection?.entryLabel) || 'Entry').toLowerCase())
+}))
 
 usePageSeo(() => ({
   title: props.entry.seo?.title || props.entry.title,
@@ -151,7 +155,7 @@ useSchemaOrg([
             v-if="entry.tags?.length"
             class="flex flex-wrap items-center gap-2 border-t border-default pt-6"
           >
-            <span class="text-sm text-muted">Tags:</span>
+            <span class="text-sm text-muted">{{ t('tags') }}:</span>
             <UButton
               v-for="tag in entry.tags"
               :key="tag"
@@ -170,7 +174,7 @@ useSchemaOrg([
         >
           <UContentToc
             :links="toc"
-            title="On this page"
+            :title="t('onThisPage')"
             highlight
           />
         </template>

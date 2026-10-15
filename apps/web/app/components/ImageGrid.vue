@@ -15,6 +15,7 @@ const props = withDefaults(defineProps<{
 })
 
 const items = computed(() => (props.images ?? []).filter(image => image.asset))
+const t = useLabels()
 
 // 1–3 photos fill the row instead of leaving empty columns
 const gridClass = computed(() => {
@@ -86,7 +87,7 @@ function show(index: number) {
         type="button"
         :style="revealIndex(index, 4)"
         class="reveal group relative aspect-square overflow-hidden bg-elevated focus-visible:outline-2 focus-visible:outline-primary"
-        :aria-label="`Open image ${index + 1}${image.alt ? `: ${image.alt}` : ''}`"
+        :aria-label="`${t('openImage', { number: index + 1 })}${image.alt ? `: ${image.alt}` : ''}`"
         @click="show(index)"
       >
         <AppImage
@@ -101,7 +102,7 @@ function show(index: number) {
 
     <UModal
       v-model:open="open"
-      title="Gallery"
+      :title="t('gallery')"
       fullscreen
       :ui="{ body: 'flex items-center sm:p-6' }"
     >

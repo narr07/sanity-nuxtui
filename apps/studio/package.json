@@ -11,11 +11,13 @@
   },
   "dependencies": {
     "@sanity/code-input": "^7.3.12",
+    "@sanity/document-internationalization": "^6.2.42",
     "@sanity/icons": "^5.2.3",
     "@sanity/vision": "^6.19.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "sanity": "^6.19.0",
+    "sanity-plugin-internationalized-array": "^5.3.5",
     "styled-components": "^6.6.0"
   },
   "devDependencies": {
