@@ -81,7 +81,9 @@ export default defineNuxtConfig({
     fonts: false,
     // Registers the Prose components (ProsePre, ProseCodeGroup, …) without a
     // Markdown parser: rich text is Portable Text from Sanity, not Markdown
-    prose: true
+    prose: true,
+    // Registers the content components too (UContentToc for entry tables of contents)
+    content: true
   },
 
   compatibilityDate: '2026-06-30',

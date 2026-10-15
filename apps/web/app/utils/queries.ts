@@ -110,7 +110,7 @@ export const ROUTE_QUERY = defineQuery(`{
     details,
     sections,
     seo,
-    "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter },
+    "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter, toc },
     authors[]->${AUTHOR},
     body[]${BODY},
     blocks[]${BLOCKS},

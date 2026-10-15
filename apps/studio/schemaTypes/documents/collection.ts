@@ -95,6 +95,14 @@ export const collection = defineType({
       initialValue: ALL_ENTRY_FIELDS
     }),
     defineField({ name: 'tagFilter', title: 'Show tag filter', type: 'boolean', group: 'display', initialValue: false, description: 'Lets visitors filter the list by tag' }),
+    defineField({
+      name: 'toc',
+      title: 'Show table of contents',
+      type: 'boolean',
+      group: 'display',
+      initialValue: false,
+      description: 'Lists the headings of the entry body next to it, highlighting the one being read. Shown on entries with at least two headings.'
+    }),
     defineField({ name: 'showRelated', title: 'Show related entries', type: 'boolean', group: 'display', initialValue: false, description: 'Shows up to three entries with a shared tag under each entry' }),
     defineField({ name: 'seo', title: 'SEO', type: 'seo', group: 'seo' })
   ],

@@ -17,10 +17,11 @@ import {
 } from '#components'
 import type { BlockType, PageBlock } from '~/types/sanity'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   blocks: PageBlock[] | null | undefined
-  /** From useSanityQuery; makes blocks clickable and sortable in the Presentation tool */
-  encodeDataAttribute?: (path: (string | number | { _key: string })[]) => unknown
+  /** From useSanityQuery; makes blocks clickable and sortable in the Presentation tool.
+   * Takes a path in the query result (array indexes), not a document path (_key). */
+  encodeDataAttribute?: (path: (string | number)[]) => unknown
   /** Where `blocks` sits in the query result, e.g. ['page'] */
   basePath?: string[]
 }>(), {
@@ -46,13 +47,21 @@ const registry: Record<BlockType, Component> = {
 }
 
 const isDev = import.meta.dev
+
+// Visual Editing: the content source map only maps leaf values, so encode the
+// block's _key and trim it off. The attribute then points at the array item,
+// which makes blocks clickable and reorderable in the Presentation tool.
+function blockDataAttribute(index: number) {
+  const value = props.encodeDataAttribute?.([...props.basePath, 'blocks', index, '_key'])
+  return typeof value === 'string' ? value.replace(/(path=[^;]*)\._key(?=;|$)/, '$1') : undefined
+}
 </script>
 
 <template>
   <div
     v-for="(block, index) in blocks ?? []"
     :key="block._key"
-    :data-sanity="encodeDataAttribute?.([...basePath, 'blocks', { _key: block._key }])"
+    :data-sanity="blockDataAttribute(index)"
   >
     <component
       :is="registry[block._type]"

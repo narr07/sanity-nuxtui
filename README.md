@@ -96,7 +96,7 @@ Collections let editors add new sections to the site from the Studio, with no co
 2. On the **Display** tab, choose:
    - **List layout**: *Blog* (date, excerpt, authors), *Cards* (cover and excerpt) or *Gallery* (photo tiles with a count)
    - **Sort**: newest, oldest, title, or manual (the *Order* field on each entry)
-   - **Show tag filter** (`/services?tag=design`) and **Show related entries**
+   - **Show tag filter** (`/services?tag=design`), **Show table of contents** (a sticky `UContentToc` built from the body's H2/H3 headings) and **Show related entries**
    - **Entry fields**: which optional fields entries use (Body, Photos, Blocks, Details, Authors). Unused fields and tabs are hidden in the Studio. A gallery collection only needs Photos, a blog only Body and Authors.
 3. Open the collection → **Entries → +**. New entries are assigned to the collection automatically.
 
@@ -158,7 +158,7 @@ The `link` object (buttons, navigation, footer) points to a page, collection or 
 
 ## Visual Editing
 
-1. Create a token with the **Viewer** role at sanity.io/manage → API → Tokens.
+1. Create a token with the **Viewer** role: `pnpm --filter studio exec sanity tokens add "Preview" --role viewer`, or at sanity.io/manage → API → Tokens.
 2. Set `NUXT_SANITY_API_READ_TOKEN` in `apps/web/.env` and restart the site.
 3. Open **Presentation** in Studio.
 

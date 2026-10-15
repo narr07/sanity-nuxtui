@@ -75,6 +75,7 @@ A collection is a list of entries that shares one address. The **Blog** collecti
    - **List layout**: *Blog* (date, excerpt and authors), *Cards* (cover image and excerpt) or *Gallery* (photo tiles with a photo count).
    - **Sort entries by**: newest, oldest, title, or manual order.
    - **Show tag filter**: buttons above the list to filter by tag.
+   - **Show table of contents**: lists the headings of the entry body next to it (On this page) and highlights the one being read. Appears on entries with at least two headings. On phones it folds into a menu at the top.
    - **Show related entries**: up to three entries with a shared tag under each entry.
    - **Entry fields**: tick the fields entries in this collection need (Body, Photos, Blocks, Details, Authors). Unticked fields and their tabs are hidden, which keeps the form short. A gallery only needs Photos; a blog only Body and Authors.
 5. Under **Blocks below the list** you can add, for example, a call to action.

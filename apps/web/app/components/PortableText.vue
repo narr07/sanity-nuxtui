@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { h, type FunctionalComponent } from 'vue'
 import { stegaClean } from '@sanity/client/stega'
-import { ProseCodeGroup, SanityContent, UAlert, ULink } from '#components'
+import { ProseCodeGroup, ProseH2, ProseH3, SanityContent, UAlert, ULink } from '#components'
 import AppImage from '~/components/AppImage.vue'
 import CodeBlock from '~/components/CodeBlock.vue'
 import type { SanityLink } from '~/types/sanity'
 
-defineProps<{
+const props = defineProps<{
   value: Array<{ _type: string, _key?: string }>
 }>()
+
+// Heading ids, shared with the table of contents (utils/toc.ts)
+const headingIds = computed(() => new Map(getHeadings(props.value).map(heading => [heading.key, heading.id])))
 
 type PortableTextComponents = NonNullable<InstanceType<typeof SanityContent>['$props']['components']>
 
@@ -48,8 +51,9 @@ function tag<P>(name: string, className: string): FunctionalComponent<P> {
 const components: PortableTextComponents = {
   block: {
     normal: tag('p', 'my-5 leading-7 text-default'),
-    h2: tag('h2', 'mt-12 mb-6 scroll-mt-24 text-2xl font-bold text-highlighted'),
-    h3: tag('h3', 'mt-10 mb-4 scroll-mt-24 text-xl font-bold text-highlighted'),
+    // Prose headings: an id for the table of contents and a # anchor link
+    h2: ({ value }, { slots }) => h(ProseH2, { id: headingIds.value.get(value._key ?? ''), anchor: true }, () => slots.default?.()),
+    h3: ({ value }, { slots }) => h(ProseH3, { id: headingIds.value.get(value._key ?? ''), anchor: true }, () => slots.default?.()),
     h4: tag('h4', 'mt-8 mb-3 text-lg font-semibold text-highlighted'),
     blockquote: tag('blockquote', 'my-6 border-s-4 border-primary ps-4 text-muted italic')
   },

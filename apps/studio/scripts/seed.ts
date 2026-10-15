@@ -166,6 +166,7 @@ async function seed() {
     sort: 'newest',
     entryFields: ENTRY_FIELDS.blog,
     tagFilter: true,
+    toc: true,
     showRelated: true
   })
   collectionSections.set(blog, ENTRY_FIELDS.blog)

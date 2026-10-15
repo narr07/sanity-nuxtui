@@ -5,7 +5,7 @@ import type { EntryData } from '~/types/sanity'
 // The detail page of an entry, e.g. /blog/my-post or /projects/acme
 const props = defineProps<{
   entry: EntryData
-  encodeDataAttribute?: (path: (string | number | { _key: string })[]) => unknown
+  encodeDataAttribute?: (path: (string | number)[]) => unknown
 }>()
 
 const urlFor = useSanityImage()
@@ -16,6 +16,13 @@ function uses(field: 'body' | 'images' | 'blocks' | 'details' | 'authors') {
   const sections = props.entry.sections?.map(section => stegaClean(section))
   return !sections || sections.includes(field)
 }
+
+// Table of contents from the body headings, when the collection turns it on
+const toc = computed(() => {
+  if (!props.entry.collection?.toc || !uses('body')) return []
+  const headings = getHeadings(props.entry.body)
+  return headings.length >= 2 ? getTocLinks(headings) : []
+})
 const collectionPath = computed(() => `/${stegaClean(props.entry.collection?.slug)}`)
 const relatedLabel = computed(() => `Related ${plural((stegaClean(props.entry.collection?.entryLabel) || 'Entry').toLowerCase())}`)
 
@@ -145,6 +152,17 @@ useSchemaOrg([
             />
           </div>
         </UPageBody>
+
+        <template
+          v-if="toc.length"
+          #right
+        >
+          <UContentToc
+            :links="toc"
+            title="On this page"
+            highlight
+          />
+        </template>
       </UPage>
     </UContainer>
 

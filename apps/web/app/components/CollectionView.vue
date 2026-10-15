@@ -5,7 +5,7 @@ import type { CollectionData } from '~/types/sanity'
 // The list page of a collection, e.g. /blog or /projects
 const props = defineProps<{
   collection: CollectionData
-  encodeDataAttribute?: (path: (string | number | { _key: string })[]) => unknown
+  encodeDataAttribute?: (path: (string | number)[]) => unknown
 }>()
 
 const route = useRoute()
