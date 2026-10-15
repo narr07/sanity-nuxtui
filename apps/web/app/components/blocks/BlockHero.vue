@@ -24,7 +24,7 @@ defineProps<{
       <AppImage
         :image="block.image"
         :width="720"
-        sizes="(min-width: 1024px) 50vw, 100vw"
+        sizes="100vw lg:50vw"
         :loading="index === 0 ? 'eager' : 'lazy'"
         class="h-auto w-full rounded-lg shadow-2xl ring ring-default"
       />

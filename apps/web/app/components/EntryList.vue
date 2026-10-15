@@ -14,22 +14,17 @@ const props = withDefaults(defineProps<{
   featured: false
 })
 
-const urlFor = useSanityImage()
 const layout = computed(() => stegaClean(props.layout) ?? 'cards')
 
 function blogImage(entry: EntryCard) {
-  return entry.cover?.asset
-    ? { src: urlFor(entry.cover).width(800).height(450).url(), alt: entry.cover.alt ?? '', width: 800, height: 450 }
-    : undefined
+  return sanityImgProps(entry.cover, { width: 800, height: 450, sizes: '100vw sm:50vw lg:33vw' })
 }
 
 function authors(entry: EntryCard) {
   return entry.authors?.map(author => ({
     name: author.name,
     description: author.role ?? undefined,
-    avatar: author.avatar?.asset
-      ? { src: urlFor(author.avatar).width(64).height(64).url(), alt: author.name }
-      : { alt: author.name }
+    avatar: sanityImgProps(author.avatar, { alt: author.name }) ?? { alt: author.name }
   }))
 }
 </script>
@@ -68,7 +63,7 @@ function authors(entry: EntryCard) {
         v-if="entry.cover?.asset"
         :image="entry.cover"
         :width="640"
-        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+        sizes="100vw sm:50vw lg:33vw"
         class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
       />
       <div class="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 to-transparent p-4 pt-12">
@@ -102,7 +97,7 @@ function authors(entry: EntryCard) {
         v-if="entry.cover?.asset"
         :image="entry.cover"
         :width="640"
-        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+        sizes="100vw sm:50vw lg:33vw"
         class="aspect-[4/3] h-auto w-full rounded-md object-cover"
       />
       <template

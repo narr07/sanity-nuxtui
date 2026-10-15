@@ -9,12 +9,20 @@ const props = defineProps<{
 }>()
 
 const urlFor = useSanityImage()
+
+// The fields this entry uses ("Fields on this entry" in the Studio). Entries
+// created before that setting existed show everything.
+function uses(field: 'body' | 'images' | 'blocks' | 'details' | 'authors') {
+  const sections = props.entry.sections?.map(section => stegaClean(section))
+  return !sections || sections.includes(field)
+}
 const collectionPath = computed(() => `/${stegaClean(props.entry.collection?.slug)}`)
 const relatedLabel = computed(() => `Related ${plural((stegaClean(props.entry.collection?.entryLabel) || 'Entry').toLowerCase())}`)
 
 usePageSeo(() => ({
   title: props.entry.seo?.title || props.entry.title,
   description: props.entry.seo?.description || props.entry.excerpt,
+  headline: props.entry.collection?.title,
   image: props.entry.seo?.image ?? props.entry.coverImage ?? props.entry.images?.[0],
   noIndex: props.entry.seo?.noIndex,
   type: 'article'
@@ -24,7 +32,7 @@ useSchemaOrg([
   defineArticle({
     headline: stegaClean(props.entry.title),
     description: stegaClean(props.entry.excerpt) ?? undefined,
-    image: props.entry.coverImage?.asset ? urlFor(props.entry.coverImage).width(1200).url() : undefined,
+    image: props.entry.coverImage?.asset ? urlFor(props.entry.coverImage, { width: 1200 }) : undefined,
     datePublished: stegaClean(props.entry.publishedAt) ?? undefined,
     dateModified: props.entry._updatedAt,
     author: props.entry.authors?.map(author => ({ name: stegaClean(author.name) }))
@@ -59,7 +67,7 @@ useSchemaOrg([
           </template>
 
           <div
-            v-if="entry.authors?.length"
+            v-if="uses('authors') && entry.authors?.length"
             class="mt-4 flex flex-wrap gap-6"
           >
             <UUser
@@ -67,9 +75,7 @@ useSchemaOrg([
               :key="author._id"
               :name="author.name"
               :description="author.role ?? undefined"
-              :avatar="author.avatar?.asset
-                ? { src: urlFor(author.avatar).width(80).height(80).url(), alt: author.name }
-                : { alt: author.name }"
+              :avatar="sanityImgProps(author.avatar, { alt: author.name }) ?? { alt: author.name }"
             />
           </div>
         </UPageHeader>
@@ -79,13 +85,13 @@ useSchemaOrg([
             v-if="entry.coverImage?.asset"
             :image="entry.coverImage"
             :width="1200"
-            sizes="(min-width: 1280px) 1200px, 100vw"
+            sizes="100vw xl:1200px"
             loading="eager"
             class="aspect-video h-auto w-full rounded-lg object-cover"
           />
 
           <dl
-            v-if="entry.details?.length"
+            v-if="uses('details') && entry.details?.length"
             class="grid grid-cols-2 gap-x-6 gap-y-4 rounded-lg border border-default p-6 sm:grid-cols-4"
           >
             <div
@@ -112,14 +118,14 @@ useSchemaOrg([
           </dl>
 
           <div
-            v-if="entry.body?.length"
+            v-if="uses('body') && entry.body?.length"
             class="mx-auto w-full max-w-3xl"
           >
             <PortableText :value="entry.body" />
           </div>
 
           <ImageGrid
-            v-if="entry.images?.length"
+            v-if="uses('images') && entry.images?.length"
             :images="entry.images"
           />
 
@@ -143,7 +149,7 @@ useSchemaOrg([
     </UContainer>
 
     <PageBlocks
-      :blocks="entry.blocks"
+      :blocks="uses('blocks') ? entry.blocks : null"
       :base-path="['entry']"
       :encode-data-attribute="encodeDataAttribute"
     />

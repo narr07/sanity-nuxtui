@@ -10,6 +10,7 @@
     "seed": "sanity exec scripts/seed.ts --with-user-token --"
   },
   "dependencies": {
+    "@sanity/code-input": "^7.3.12",
     "@sanity/icons": "^5.2.3",
     "@sanity/vision": "^6.19.0",
     "react": "^19.3.1",

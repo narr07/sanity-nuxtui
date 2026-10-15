@@ -1,5 +1,6 @@
 import { defineArrayMember, defineField, defineType, type SlugValidationContext } from 'sanity'
 import { DocumentTextIcon } from '@sanity/icons/DocumentText'
+import { ALL_ENTRY_FIELDS, ENTRY_FIELDS, usesField } from '../shared/entry-fields'
 import { imageField } from '../shared/fields'
 
 const API_VERSION = '2026-10-01'
@@ -27,8 +28,8 @@ export const entry = defineType({
   icon: DocumentTextIcon,
   groups: [
     { name: 'content', title: 'Content', default: true },
-    { name: 'media', title: 'Photos' },
-    { name: 'blocks', title: 'Blocks' },
+    { name: 'media', title: 'Photos', hidden: ({ document }) => !usesField(document, 'images') },
+    { name: 'blocks', title: 'Blocks', hidden: ({ document }) => !usesField(document, 'blocks') },
     { name: 'meta', title: 'Meta' },
     { name: 'seo', title: 'SEO' }
   ],
@@ -65,12 +66,20 @@ export const entry = defineType({
       validation: rule => rule.max(240)
     }),
     { ...imageField('coverImage', 'Cover image'), group: 'content', description: 'Shown on cards and at the top of the entry' },
-    defineField({ name: 'body', title: 'Body', type: 'blockContent', group: 'content', description: 'Rich text: headings, lists, links, images, callouts and code' }),
+    defineField({
+      name: 'body',
+      title: 'Body',
+      type: 'blockContent',
+      group: 'content',
+      description: 'Rich text: headings, lists, links, images, callouts and code',
+      hidden: ({ document }) => !usesField(document, 'body')
+    }),
     defineField({
       name: 'images',
       title: 'Photos',
       type: 'array',
       group: 'media',
+      hidden: ({ document }) => !usesField(document, 'images'),
       description: 'Optional photo gallery, shown as a grid with a lightbox. Drag and drop several files to upload them at once.',
       options: { layout: 'grid' },
       of: [defineArrayMember({
@@ -87,6 +96,7 @@ export const entry = defineType({
       title: 'Blocks',
       type: 'pageBuilder',
       group: 'blocks',
+      hidden: ({ document }) => !usesField(document, 'blocks'),
       description: 'Optional page-builder blocks shown after the body and photos'
     }),
     defineField({
@@ -101,6 +111,7 @@ export const entry = defineType({
       title: 'Authors',
       type: 'array',
       group: 'meta',
+      hidden: ({ document }) => !usesField(document, 'authors'),
       of: [{ type: 'reference', to: [{ type: 'author' }] }]
     }),
     defineField({
@@ -117,6 +128,7 @@ export const entry = defineType({
       title: 'Details',
       type: 'array',
       group: 'meta',
+      hidden: ({ document }) => !usesField(document, 'details'),
       description: 'Key facts shown on the entry, e.g. Client: Acme, Year: 2026, Role: Design',
       of: [defineArrayMember({
         name: 'detail',
@@ -128,6 +140,16 @@ export const entry = defineType({
         ],
         preview: { select: { title: 'label', subtitle: 'value' } }
       })]
+    }),
+    defineField({
+      name: 'sections',
+      title: 'Fields on this entry',
+      type: 'array',
+      group: 'meta',
+      description: 'Copied from the collection when the entry is created. Turn on a field to use it on this entry only.',
+      of: [{ type: 'string' }],
+      options: { list: ENTRY_FIELDS, layout: 'grid' },
+      initialValue: ALL_ENTRY_FIELDS
     }),
     defineField({
       name: 'order',

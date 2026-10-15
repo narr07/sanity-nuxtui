@@ -25,7 +25,14 @@ const CONTENT_TYPES = ['page', 'collection', 'entry', 'author', 'settings', 'pos
 
 const key = () => randomUUID().replaceAll('-', '').slice(0, 12)
 const ref = (_ref: string) => ({ _type: 'reference', _ref, _key: key() })
-const belongsTo = (_ref: string) => ({ collection: { _type: 'reference', _ref } })
+// Entries copy the fields their collection uses ("Entry fields" → "sections")
+const ENTRY_FIELDS = {
+  blog: ['body', 'authors'],
+  gallery: ['images'],
+  projects: ['body', 'images', 'blocks', 'details']
+}
+const collectionSections = new Map<string, string[]>()
+const belongsTo = (_ref: string) => ({ collection: { _type: 'reference', _ref }, sections: collectionSections.get(_ref) })
 const slug = (current: string) => ({ _type: 'slug', current })
 
 type Link = Record<string, unknown>
@@ -61,7 +68,10 @@ const bullets = (items: string[]) => items.map(item => block(item, 'normal', { l
 const numbered = (items: string[]) => items.map(item => block(item, 'normal', { listItem: 'number', level: 1 }))
 const callout = (title: string, description: string, color = 'info', icon = 'i-lucide-info') =>
   ({ _type: 'callout', _key: key(), title, description, color, icon, variant: 'subtle' })
-const code = (filename: string, source: string) => ({ _type: 'codeBlock', _key: key(), filename, code: source })
+// Code blocks use the "code" type from @sanity/code-input
+const code = (filename: string, source: string, language = 'typescript', highlightedLines?: number[]) =>
+  ({ _type: 'code', _key: key(), filename, language, code: source, ...(highlightedLines ? { highlightedLines } : {}) })
+const codeGroup = (...tabs: ReturnType<typeof code>[]) => ({ _type: 'codeGroup', _key: key(), tabs })
 
 // ---------------------------------------------------------------------------
 // Images
@@ -154,9 +164,11 @@ async function seed() {
     entryLabel: 'Post',
     layout: 'blog',
     sort: 'newest',
+    entryFields: ENTRY_FIELDS.blog,
     tagFilter: true,
     showRelated: true
   })
+  collectionSections.set(blog, ENTRY_FIELDS.blog)
   const gallery = await create({
     _type: 'collection',
     title: 'Gallery',
@@ -164,8 +176,10 @@ async function seed() {
     description: 'Photo collections.',
     entryLabel: 'Gallery',
     layout: 'gallery',
-    sort: 'newest'
+    sort: 'newest',
+    entryFields: ENTRY_FIELDS.gallery
   })
+  collectionSections.set(gallery, ENTRY_FIELDS.gallery)
   const projects = await create({
     _type: 'collection',
     title: 'Projects',
@@ -174,6 +188,7 @@ async function seed() {
     entryLabel: 'Project',
     layout: 'cards',
     sort: 'manual',
+    entryFields: ENTRY_FIELDS.projects,
     tagFilter: true,
     blocks: [{
       _type: 'cta', _key: key(),
@@ -184,6 +199,8 @@ async function seed() {
       links: [external('Get in touch', '/contact', { icon: 'i-lucide-mail' })]
     }]
   })
+
+  collectionSections.set(projects, ENTRY_FIELDS.projects)
 
   // Gallery entries ---------------------------------------------------------
   console.log('Gallery entries')
@@ -231,10 +248,10 @@ async function seed() {
       block('This template pairs **Sanity Studio** for editing with **Nuxt UI** for rendering. Editors build pages from blocks; every block is a Nuxt UI component on the site.'),
       h2('1. Connect your project'),
       block('Copy the example env files and fill in your project ID from [sanity.io/manage](https://www.sanity.io/manage).'),
-      code('terminal', 'cp apps/studio/.env.example apps/studio/.env\ncp apps/web/.env.example apps/web/.env'),
+      code('terminal', 'cp apps/studio/.env.example apps/studio/.env\ncp apps/web/.env.example apps/web/.env', 'sh'),
       h2('2. Add example content'),
       block('The seed script creates pages, three collections (Blog, Gallery, Projects) with entries, and authors, so you can see every block in action.'),
-      code('terminal', 'pnpm install\npnpm --filter studio exec sanity login\npnpm seed'),
+      code('terminal', 'pnpm install\npnpm --filter studio exec sanity login\npnpm seed', 'sh'),
       callout('Already have content?', 'The seed script stops when the dataset already has content. Run "pnpm seed --replace" to delete it first.', 'warning', 'i-lucide-triangle-alert'),
       h2('3. Run it'),
       ...bullets([
@@ -263,19 +280,54 @@ async function seed() {
         'Create `Block<Name>.vue` in `apps/web/app/components/blocks/` with a `block: BlockOf<\'name\'>` prop.',
         'Add the component to the registry in `PageBlocks.vue`.'
       ]),
-      h3('Example schema'),
-      code('apps/studio/schemaTypes/blocks/stats.ts', `export const stats = defineType({
+      h3('Example: a Stats block'),
+      block('A schema, a component and one line in the registry. Switch between the files with the tabs.'),
+      codeGroup(
+        code('stats.ts', `import { defineArrayMember, defineField, defineType } from 'sanity'
+
+export const stats = defineType({
   name: 'stats',
   title: 'Stats',
   type: 'object',
   fields: [
     defineField({ name: 'title', type: 'string' }),
-    defineField({ name: 'items', type: 'array', of: [{ type: 'object', fields: [
-      defineField({ name: 'value', type: 'string' }),
-      defineField({ name: 'label', type: 'string' })
-    ] }] })
+    defineField({
+      name: 'items',
+      type: 'array',
+      of: [defineArrayMember({
+        type: 'object',
+        fields: [
+          defineField({ name: 'value', type: 'string' }),
+          defineField({ name: 'label', type: 'string' })
+        ]
+      })]
+    })
   ]
 })`),
+        code('BlockStats.vue', `<script setup lang="ts">
+import type { BlockOf } from '~/types/sanity'
+
+defineProps<{ block: BlockOf<'stats'>, index: number }>()
+</script>
+
+<template>
+  <UPageSection :title="block.title">
+    <UPageGrid>
+      <UPageCard
+        v-for="item in block.items"
+        :key="item._key"
+        :title="item.value"
+        :description="item.label"
+      />
+    </UPageGrid>
+  </UPageSection>
+</template>`, 'vue'),
+        code('PageBlocks.vue', `const registry: Record<BlockType, Component> = {
+  hero: LazyBlockHero,
+  // …
+  stats: LazyBlockStats
+}`, 'typescript', [4])
+      ),
       callout('Forgot a step?', 'PageBlocks.vue types its registry as Record<BlockType, Component>, so a block without a component fails the typecheck.', 'info', 'i-lucide-shield-check'),
       block('Keep field names identical to the Nuxt UI props. The component can then pass values straight through, and the next developer can look up a field in the Nuxt UI docs.')
     ]
@@ -689,7 +741,6 @@ async function seed() {
     _type: 'settings',
     title: 'Sanity × Nuxt UI',
     description: 'A block-based website builder with Sanity Studio and Nuxt UI.',
-    ogImage: await image(1015),
     navigation: [
       internal('Home', home, { variant: 'link' }),
       internal('About', about, { variant: 'link' }),

@@ -33,7 +33,7 @@ const features = computed(() => props.block.features?.map(feature => ({
       <AppImage
         :image="block.image"
         :width="720"
-        sizes="(min-width: 1024px) 50vw, 100vw"
+        sizes="100vw lg:50vw"
         class="h-auto w-full rounded-lg ring ring-default"
       />
     </template>

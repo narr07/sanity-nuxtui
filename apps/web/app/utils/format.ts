@@ -3,6 +3,13 @@ import { stegaClean } from '@sanity/client/stega'
 // Fixed locale and time zone so server and client render the same string.
 const dateFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'long', timeZone: 'UTC' })
 
+// Short, stable hash for cache keys (djb2)
+export function hashString(value: string) {
+  let hash = 5381
+  for (let i = 0; i < value.length; i++) hash = ((hash << 5) + hash + value.charCodeAt(i)) | 0
+  return (hash >>> 0).toString(36)
+}
+
 // Good enough for collection labels such as "post", "entry", "case study"
 export function plural(word: string) {
   if (/[^aeiou]y$/i.test(word)) return `${word.slice(0, -1)}ies`

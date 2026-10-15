@@ -6,8 +6,6 @@ defineProps<{
   block: BlockOf<'testimonials'>
   index: number
 }>()
-
-const urlFor = useSanityImage()
 </script>
 
 <template>
@@ -29,9 +27,7 @@ const urlFor = useSanityImage()
           <UUser
             :name="item.name"
             :description="item.role"
-            :avatar="item.avatar?.asset
-              ? { src: urlFor(item.avatar).width(80).height(80).url(), alt: item.avatar.alt || item.name }
-              : { alt: item.name }"
+            :avatar="sanityImgProps(item.avatar, { alt: item.avatar?.alt || item.name }) ?? { alt: item.name }"
             size="lg"
           />
         </template>

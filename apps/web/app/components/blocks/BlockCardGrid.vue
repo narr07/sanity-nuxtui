@@ -34,7 +34,7 @@ defineProps<{
           v-if="card.image?.asset"
           :image="card.image"
           :width="480"
-          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          sizes="100vw sm:50vw lg:33vw"
           class="h-auto w-full rounded-md"
         />
       </UPageCard>

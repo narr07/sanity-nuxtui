@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { stegaClean } from '@sanity/client/stega'
 import type { FooterColumn, NavigationMenuItem } from '@nuxt/ui'
+import type { SiteSeo } from '~/composables/usePageSeo'
 import { SETTINGS_QUERY } from '~/utils/queries'
 
 // Header, footer and site-wide SEO all come from the "Site Settings" singleton.
@@ -52,11 +53,13 @@ useHead({
 useSeoMeta({
   titleTemplate: title => title ? `${title} · ${siteTitle.value}` : siteTitle.value,
   description: () => settings.value?.description,
-  ogSiteName: siteTitle,
-  ogImage: () => settings.value?.ogImage?.asset
-    ? urlFor(settings.value.ogImage).width(1200).height(630).fit('crop').url()
-    : undefined
+  ogSiteName: siteTitle
 })
+
+// Read by usePageSeo(): the site name and the optional default social image.
+// No og:image is set here, so pages can fall back to a generated image.
+const siteSeo = useState<SiteSeo>('site-seo')
+siteSeo.value = { name: siteTitle.value, ogImage: settings.value?.ogImage }
 </script>
 
 <template>
@@ -65,7 +68,7 @@ useSeoMeta({
       <template #title>
         <img
           v-if="settings?.logo?.asset"
-          :src="urlFor(settings.logo).height(64).url()"
+          :src="urlFor(settings.logo, { height: 64 })"
           :alt="siteTitle"
           class="h-7 w-auto"
         >

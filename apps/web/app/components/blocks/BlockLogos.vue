@@ -7,13 +7,10 @@ const props = defineProps<{
   index: number
 }>()
 
-const urlFor = useSanityImage()
-
-// UPageLogos menerima nama ikon (string) atau { src, alt }
+// UPageLogos accepts an icon name (string) or { src, alt }
 const items = computed(() => props.block.items?.map((item) => {
-  if (item.image?.asset) {
-    return { src: urlFor(item.image).height(80).url(), alt: item.image.alt || item.name }
-  }
+  const image = sanityImgProps(item.image, { alt: item.image?.alt || item.name })
+  if (image) return { src: image.src, alt: image.alt }
   return stegaClean(item.icon) ?? ''
 }).filter(Boolean))
 </script>

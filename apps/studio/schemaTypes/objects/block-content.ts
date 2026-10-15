@@ -1,4 +1,5 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
+import { codeOptions } from '../shared/code'
 import { captionField, imageField } from '../shared/fields'
 
 // Rich text used by posts and the "Rich Text" block.
@@ -44,15 +45,9 @@ export const blockContent = defineType({
     defineArrayMember({ ...imageField('image', 'Image', [captionField]), name: 'image' }),
     // Same type as the page-builder Callout block
     defineArrayMember({ type: 'callout' }),
-    defineArrayMember({
-      name: 'codeBlock',
-      title: 'Code',
-      type: 'object',
-      fields: [
-        defineField({ name: 'filename', title: 'File name', type: 'string' }),
-        defineField({ name: 'code', title: 'Code', type: 'text', rows: 8 })
-      ],
-      preview: { select: { title: 'filename', subtitle: 'code' }, prepare: ({ title, subtitle }) => ({ title: title || 'Code', subtitle }) }
-    })
+    // Syntax-highlighted code with a file name and a copy button on the site
+    defineArrayMember({ type: 'code', title: 'Code', options: codeOptions }),
+    // Several code blocks as tabs
+    defineArrayMember({ type: 'codeGroup' })
   ]
 })

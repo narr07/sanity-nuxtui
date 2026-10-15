@@ -1,5 +1,6 @@
 import { defineField, defineType } from 'sanity'
 import { FolderIcon } from '@sanity/icons/Folder'
+import { ALL_ENTRY_FIELDS, ENTRY_FIELDS } from '../shared/entry-fields'
 
 const API_VERSION = '2026-10-01'
 
@@ -82,6 +83,16 @@ export const collection = defineType({
         layout: 'radio'
       },
       initialValue: 'newest'
+    }),
+    defineField({
+      name: 'entryFields',
+      title: 'Entry fields',
+      type: 'array',
+      group: 'display',
+      description: 'Fields new entries in this collection use. Unused fields and tabs are hidden. Each entry can still change this under Meta.',
+      of: [{ type: 'string' }],
+      options: { list: ENTRY_FIELDS, layout: 'grid' },
+      initialValue: ALL_ENTRY_FIELDS
     }),
     defineField({ name: 'tagFilter', title: 'Show tag filter', type: 'boolean', group: 'display', initialValue: false, description: 'Lets visitors filter the list by tag' }),
     defineField({ name: 'showRelated', title: 'Show related entries', type: 'boolean', group: 'display', initialValue: false, description: 'Shows up to three entries with a shared tag under each entry' }),

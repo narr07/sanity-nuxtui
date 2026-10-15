@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import type { SanityImageSource } from '@sanity/image-url'
+import type { SanityImageValue } from '~/composables/useSanityImage'
 
-type GalleryImage = SanityImageSource & {
+type GalleryImage = SanityImageValue & {
   _key: string
-  asset?: { _ref?: string }
-  alt?: string | null
   caption?: string | null
 }
 
@@ -16,7 +14,6 @@ const props = withDefaults(defineProps<{
   layout: 'grid'
 })
 
-const urlFor = useSanityImage()
 const items = computed(() => (props.images ?? []).filter(image => image.asset))
 
 // 1–3 photos fill the row instead of leaving empty columns
@@ -52,7 +49,7 @@ function show(index: number) {
       <AppImage
         :image="item"
         :width="1280"
-        sizes="(min-width: 1280px) 1280px, 100vw"
+        sizes="100vw xl:1280px"
         class="h-auto max-h-[70vh] w-full rounded-lg object-contain"
       />
       <figcaption
@@ -77,15 +74,13 @@ function show(index: number) {
         :aria-label="`Open image ${index + 1}${image.alt ? `: ${image.alt}` : ''}`"
         @click="show(index)"
       >
-        <img
-          :src="urlFor(image).width(600).height(600).url()"
-          :alt="image.alt ?? ''"
-          width="600"
-          height="600"
-          loading="lazy"
-          decoding="async"
+        <AppImage
+          :image="image"
+          :width="600"
+          :height="600"
+          sizes="50vw sm:33vw lg:25vw"
           class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-        >
+        />
       </button>
     </div>
 

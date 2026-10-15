@@ -17,7 +17,11 @@ export const settings = defineType({
     defineField({ name: 'title', title: 'Site name', type: 'string', group: 'general', validation: rule => rule.required() }),
     defineField({ name: 'description', title: 'Default description', type: 'text', rows: 3, group: 'general', description: 'Used when a page has no meta description' }),
     { ...imageField('logo', 'Logo', []), group: 'general', description: 'Optional. The site name is shown when empty.' },
-    { ...imageField('ogImage', 'Default social share image'), group: 'general' },
+    {
+      ...imageField('ogImage', 'Default social share image'),
+      group: 'general',
+      description: 'Optional. When empty, every page gets a generated image with its title in the site theme.'
+    },
     defineField({ name: 'navigation', title: 'Navigation', type: 'array', of: [{ type: 'link' }], group: 'header' }),
     defineField({ name: 'headerLinks', title: 'Header buttons', type: 'array', of: [{ type: 'link' }], group: 'header', validation: rule => rule.max(2) }),
     defineField({

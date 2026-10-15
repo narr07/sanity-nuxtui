@@ -25,7 +25,7 @@ defineProps<{
         <AppImage
           :image="block.image"
           :width="640"
-          sizes="(min-width: 1024px) 50vw, 100vw"
+          sizes="100vw lg:50vw"
           class="h-auto w-full rounded-lg"
         />
       </template>

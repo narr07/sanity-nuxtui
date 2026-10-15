@@ -20,6 +20,19 @@ const LINK = /* groq */ `{
   )
 }`
 
+// Images carry their low-quality placeholder (a tiny base64 image) from the asset metadata
+const IMAGE = /* groq */ `{
+  ...,
+  "lqip": asset->metadata.lqip
+}`
+
+// Rich text with image placeholders and resolved links in callouts
+const BODY = /* groq */ `{
+  ...,
+  _type == "image" => { "lqip": asset->metadata.lqip },
+  _type == "callout" => { links[]${LINK} }
+}`
+
 const AUTHOR = /* groq */ `{
   _id,
   name,
@@ -35,7 +48,7 @@ const ENTRY_CARD = /* groq */ `{
   "path": "/" + collection->slug.current + "/" + slug.current,
   publishedAt,
   excerpt,
-  "cover": coalesce(coverImage, images[0]),
+  "cover": coalesce(coverImage, images[0])${IMAGE},
   "imageCount": count(images),
   tags,
   order,
@@ -46,7 +59,9 @@ const ENTRY_CARD = /* groq */ `{
 const BLOCKS = /* groq */ `{
   ...,
   links[]${LINK},
-  _type == "cardGrid" => { cards[]{ ..., link${LINK} } },
+  defined(image) => { image${IMAGE} },
+  defined(images) => { images[]${IMAGE} },
+  _type == "cardGrid" => { cards[]{ ..., image${IMAGE}, link${LINK} } },
   _type == "pricing" => { plans[]{ ..., button${LINK} } },
   _type == "collectionList" => {
     link${LINK},
@@ -54,12 +69,7 @@ const BLOCKS = /* groq */ `{
     "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]
       | order(publishedAt desc)[0...100]${ENTRY_CARD}
   },
-  _type == "richText" => {
-    body[]{
-      ...,
-      _type == "callout" => { links[]${LINK} }
-    }
-  }
+  _type == "richText" => { body[]${BODY} }
 }`
 
 // One query per URL: /<path> is a page or a collection, /<parent>/<child> may be
@@ -94,17 +104,15 @@ export const ROUTE_QUERY = defineQuery(`{
     publishedAt,
     _updatedAt,
     excerpt,
-    coverImage,
-    images,
+    coverImage${IMAGE},
+    images[]${IMAGE},
     tags,
     details,
+    sections,
     seo,
     "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter },
     authors[]->${AUTHOR},
-    body[]{
-      ...,
-      _type == "callout" => { links[]${LINK} }
-    },
+    body[]${BODY},
     blocks[]${BLOCKS},
     "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && count(tags[@ in ^.^.tags]) > 0]
       | order(publishedAt desc)[0...3]${ENTRY_CARD}

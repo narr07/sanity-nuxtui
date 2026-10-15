@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { h, type FunctionalComponent } from 'vue'
 import { stegaClean } from '@sanity/client/stega'
-import { SanityContent, UAlert, ULink } from '#components'
+import { ProseCodeGroup, SanityContent, UAlert, ULink } from '#components'
 import AppImage from '~/components/AppImage.vue'
+import CodeBlock from '~/components/CodeBlock.vue'
 import type { SanityLink } from '~/types/sanity'
 
 defineProps<{
@@ -18,6 +19,25 @@ interface CalloutValue {
   color?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'
   variant?: 'solid' | 'outline' | 'soft' | 'subtle'
   links?: Partial<SanityLink>[]
+}
+
+interface CodeValue {
+  _key?: string
+  code?: string
+  language?: string
+  filename?: string
+  highlightedLines?: number[]
+}
+
+function codeProps(value: CodeValue) {
+  return {
+    code: value.code,
+    language: value.language,
+    filename: value.filename || undefined,
+    // Tab label in ProseCodeGroup when there is no file name
+    label: value.language,
+    highlightedLines: value.highlightedLines
+  }
 }
 
 // Renders a tag with semantic Nuxt UI classes, so text follows the theme and dark mode
@@ -59,7 +79,7 @@ const components: PortableTextComponents = {
       h(AppImage, {
         image: value,
         width: 768,
-        sizes: '(min-width: 768px) 768px, 100vw',
+        sizes: '100vw md:768px',
         class: 'h-auto w-full rounded-lg'
       }),
       value?.caption ? h('figcaption', { class: 'mt-2 text-center text-sm text-muted' }, value.caption) : null
@@ -73,10 +93,14 @@ const components: PortableTextComponents = {
       variant: stegaClean(value.variant) ?? 'subtle',
       actions: toButtons(value.links)
     }),
-    codeBlock: ({ value }: { value: { filename?: string, code?: string } }) => h('div', { class: 'my-6 overflow-hidden rounded-lg border border-default' }, [
-      value.filename ? h('div', { class: 'border-b border-default bg-elevated px-4 py-2 font-mono text-xs text-muted' }, value.filename) : null,
-      h('pre', { class: 'overflow-x-auto bg-muted p-4 text-sm leading-6' }, [h('code', { class: 'font-mono' }, value.code)])
-    ])
+    // @sanity/code-input → ProsePre with file icon, copy button and highlighting
+    code: ({ value }: { value: CodeValue }) => h(CodeBlock, codeProps(value)),
+    // Several code blocks → ProseCodeGroup tabs, labelled by file name
+    codeGroup: ({ value }: { value: { tabs?: CodeValue[] } }) => h(
+      ProseCodeGroup,
+      null,
+      () => (value.tabs ?? []).map(tab => h(CodeBlock, { key: tab._key, ...codeProps(tab) }))
+    )
   }
 }
 </script>

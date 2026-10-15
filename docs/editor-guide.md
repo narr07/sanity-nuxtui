@@ -76,6 +76,7 @@ A collection is a list of entries that shares one address. The **Blog** collecti
    - **Sort entries by**: newest, oldest, title, or manual order.
    - **Show tag filter**: buttons above the list to filter by tag.
    - **Show related entries**: up to three entries with a shared tag under each entry.
+   - **Entry fields**: tick the fields entries in this collection need (Body, Photos, Blocks, Details, Authors). Unticked fields and their tabs are hidden, which keeps the form short. A gallery only needs Photos; a blog only Body and Authors.
 5. Under **Blocks below the list** you can add, for example, a call to action.
 6. **Publish**, then add the collection to the menu in **Site Settings → Header → Navigation**.
 
@@ -84,10 +85,10 @@ A collection is a list of entries that shares one address. The **Blog** collecti
 1. **Collections → *your collection* → Entries → +**. The entry is assigned to that collection automatically.
 2. Fill in **Title**, generate the **Slug**, write an **Excerpt** (shown on cards and in search results) and upload a **Cover image**.
 3. Use whichever fields fit. All of them are optional:
-   - **Body**: rich text with headings, bold, italic, code, links and lists. Use **+** in the editor to insert an **Image**, a **Callout** or a **Code** block.
+   - **Body**: rich text with headings, bold, italic, code, links and lists. Use **+** in the editor to insert an **Image**, a **Callout**, a **Code** block or a **Code group** (see [Code blocks](#code-blocks)).
    - **Photos** tab: drag several photos at once to upload them in bulk. They are shown as a grid that opens a lightbox. Click a photo to add **Alternative text** and a **Caption**. Without a cover image, the first photo is used as the cover.
    - **Blocks** tab: the same blocks as on pages, shown after the body and photos.
-   - **Meta** tab: **Date**, **Authors**, **Tags** (type and press Enter), **Details** and **Order**.
+   - **Meta** tab: **Date**, **Authors**, **Tags** (type and press Enter), **Details**, **Order** and **Fields on this entry**. The last one starts with the collection's entry fields; tick another field to use it on this entry only.
 4. **Publish**. The entry appears on the collection page, in every *Collection List* block for that collection, and in the sitemap.
 
 **Details** are short facts shown as a small table at the top of the entry, for example *Client: Acme*, *Year: 2026*, *Location: Berlin*. Add a link to make a value clickable.
@@ -98,17 +99,25 @@ A collection is a list of entries that shares one address. The **Blog** collecti
 
 Add a **Collection List** block to any page, pick the collection, and choose how many entries to show. Optionally show only entries with a certain tag and add a "View all" button.
 
+## Code blocks
+
+In any rich text field, use **+** to insert:
+
+- **Code**: pick the **language**, optionally type a **file name** (e.g. `nuxt.config.ts`), and paste the code. The site shows it with syntax highlighting, an icon for the file type and a copy button. Click line numbers in the editor to **highlight lines**.
+- **Code group**: two or more code blocks shown as tabs, for example `pnpm` / `npm` / `yarn`, or a component and its config. The file name of each block is its tab label.
+
 ## Images
 
 - Always fill in **Alternative text**: describe what the image shows.
 - Use **Edit → Hotspot** to mark the important part of an image. Crops on smaller screens keep that part visible.
 - Images are resized and converted automatically; upload the largest version you have.
+- While an image loads, visitors see a pixelated preview of it.
 
 ## Site Settings
 
 | Tab     | Fields                                                                     |
 | ------- | -------------------------------------------------------------------------- |
-| General | Site name, default description, logo, default social share image           |
+| General | Site name, default description, logo, default social share image (optional) |
 | Header  | **Navigation** (menu links) and up to two **Header buttons**               |
 | Footer  | **Footer columns** (heading + links), footer text, **Social links**        |
 
@@ -119,7 +128,7 @@ Social links need an icon such as `i-simple-icons-instagram`, `i-simple-icons-x`
 Every page, collection and entry has an **SEO** tab:
 
 - **Meta title** and **Meta description**: what search engines show. When empty, the title and excerpt/description are used.
-- **Social share image**: shown when the link is shared. When empty, the cover image or the default from Site Settings is used.
+- **Social share image**: shown when the link is shared. When empty, the cover image (or first photo) is used, then the default from Site Settings. When there is none of these, an image is generated automatically from the title and description, in the colors and fonts of the site.
 - **Hide from search engines**: removes the page from the sitemap and adds `noindex`.
 
 ## Live preview (Presentation)

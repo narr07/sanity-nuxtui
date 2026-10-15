@@ -406,6 +406,15 @@ export type FeatureItem = {
   icon?: string;
 };
 
+export type CodeGroup = {
+  _type: "codeGroup";
+  tabs?: Array<
+    {
+      _key: string;
+    } & Code
+  >;
+};
+
 export type BlockContent = Array<
   | {
       children?: Array<{
@@ -439,12 +448,12 @@ export type BlockContent = Array<
   | ({
       _key: string;
     } & Callout)
-  | {
-      filename?: string;
-      code?: string;
-      _type: "codeBlock";
+  | ({
       _key: string;
-    }
+    } & Code)
+  | ({
+      _key: string;
+    } & CodeGroup)
 >;
 
 export type Settings = {
@@ -594,6 +603,7 @@ export type Entry = {
     _type: "detail";
     _key: string;
   }>;
+  sections?: Array<string>;
   order?: number;
   seo?: Seo;
 };
@@ -617,6 +627,7 @@ export type Collection = {
   blocks?: PageBuilder;
   layout: "blog" | "cards" | "gallery";
   sort?: "newest" | "oldest" | "title" | "manual";
+  entryFields?: Array<string>;
   tagFilter?: boolean;
   showRelated?: boolean;
   seo?: Seo;
@@ -632,6 +643,14 @@ export type Page = {
   slug: Slug;
   blocks?: PageBuilder;
   seo?: Seo;
+};
+
+export type Code = {
+  _type: "code";
+  language?: string;
+  filename?: string;
+  code?: string;
+  highlightedLines?: Array<number>;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -756,6 +775,7 @@ export type AllSanitySchemaTypes =
   | EntryReference
   | Link
   | FeatureItem
+  | CodeGroup
   | BlockContent
   | Settings
   | SanityImageCrop
@@ -766,6 +786,7 @@ export type AllSanitySchemaTypes =
   | Slug
   | Collection
   | Page
+  | Code
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
@@ -777,7 +798,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../web/app/utils/queries.ts
 // Variable: ROUTE_QUERY
-// Query: {  "page": *[_type == "page" && slug.current == $path][0]{    _id,    _type,    title,    seo,    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  _type == "cardGrid" => { cards[]{ ..., link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]),  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => {    body[]{      ...,      _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }    }  }}  },  "collection": *[_type == "collection" && slug.current == $path][0]{    _id,    _type,    title,    "slug": slug.current,    description,    entryLabel,    layout,    sort,    tagFilter,    seo,    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  _type == "cardGrid" => { cards[]{ ..., link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]),  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => {    body[]{      ...,      _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }    }  }},    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current)] | order(publishedAt desc){  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]),  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  "entry": *[_type == "entry" && slug.current == $child && collection->slug.current == $parent][0]{    _id,    _type,    title,    "slug": slug.current,    publishedAt,    _updatedAt,    excerpt,    coverImage,    images,    tags,    details,    seo,    "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter },    authors[]->{  _id,  name,  role,  avatar},    body[]{      ...,      _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }    },    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  _type == "cardGrid" => { cards[]{ ..., link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]),  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => {    body[]{      ...,      _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }    }  }},    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && count(tags[@ in ^.^.tags]) > 0]      | order(publishedAt desc)[0...3]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]),  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  }}
+// Query: {  "page": *[_type == "page" && slug.current == $path][0]{    _id,    _type,    title,    seo,    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  defined(image) => { image{  ...,  "lqip": asset->metadata.lqip} },  defined(images) => { images[]{  ...,  "lqip": asset->metadata.lqip} },  _type == "cardGrid" => { cards[]{ ..., image{  ...,  "lqip": asset->metadata.lqip}, link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => { body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }} }}  },  "collection": *[_type == "collection" && slug.current == $path][0]{    _id,    _type,    title,    "slug": slug.current,    description,    entryLabel,    layout,    sort,    tagFilter,    seo,    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  defined(image) => { image{  ...,  "lqip": asset->metadata.lqip} },  defined(images) => { images[]{  ...,  "lqip": asset->metadata.lqip} },  _type == "cardGrid" => { cards[]{ ..., image{  ...,  "lqip": asset->metadata.lqip}, link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => { body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }} }},    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current)] | order(publishedAt desc){  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  "entry": *[_type == "entry" && slug.current == $child && collection->slug.current == $parent][0]{    _id,    _type,    title,    "slug": slug.current,    publishedAt,    _updatedAt,    excerpt,    coverImage{  ...,  "lqip": asset->metadata.lqip},    images[]{  ...,  "lqip": asset->metadata.lqip},    tags,    details,    sections,    seo,    "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter },    authors[]->{  _id,  name,  role,  avatar},    body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }},    blocks[]{  ...,  links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},  defined(image) => { image{  ...,  "lqip": asset->metadata.lqip} },  defined(images) => { images[]{  ...,  "lqip": asset->metadata.lqip} },  _type == "cardGrid" => { cards[]{ ..., image{  ...,  "lqip": asset->metadata.lqip}, link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "pricing" => { plans[]{ ..., button{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} } },  _type == "collectionList" => {    link{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )},    "collection": collection->{ title, "slug": slug.current, layout, sort },    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]      | order(publishedAt desc)[0...100]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  },  _type == "richText" => { body[]{  ...,  _type == "image" => { "lqip": asset->metadata.lqip },  _type == "callout" => { links[]{  _key,  label,  newTab,  icon,  trailingIcon,  color,  variant,  "to": select(    linkType == "internal" => select(      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,      page->_type == "page" && page->slug.current == "home" => "/",      "/" + page->slug.current    ),    href  )} }} }},    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && count(tags[@ in ^.^.tags]) > 0]      | order(publishedAt desc)[0...3]{  _id,  title,  "slug": slug.current,  "path": "/" + collection->slug.current + "/" + slug.current,  publishedAt,  excerpt,  "cover": coalesce(coverImage, images[0]){  ...,  "lqip": asset->metadata.lqip},  "imageCount": count(images),  tags,  order,  authors[]->{  _id,  name,  role,  avatar}}  }}
 export type ROUTE_QUERY_RESULT = {
   page: {
     _id: string;
@@ -831,7 +852,15 @@ export type ROUTE_QUERY_RESULT = {
             title: string;
             description?: string;
             icon?: string;
-            image?: CardImage;
+            image: {
+              asset?: SanityImageAssetReference;
+              media?: unknown; // Unable to locate the referenced type "card.image.media" in schema
+              hotspot?: SanityImageHotspot;
+              crop?: SanityImageCrop;
+              alt?: string;
+              _type: "image";
+              lqip: string | null;
+            } | null;
             link: {
               _key: null;
               label: string | null;
@@ -925,6 +954,7 @@ export type ROUTE_QUERY_RESULT = {
                   caption?: string;
                   _type: "image";
                   _key: string;
+                  lqip: string | null;
                 }
               | {
                   asset?: SanityImageAssetReference;
@@ -933,6 +963,7 @@ export type ROUTE_QUERY_RESULT = {
                   crop?: SanityImageCrop;
                   alt?: string;
                   _type: "image";
+                  lqip: string | null;
                 }
               | null;
             imageCount: number | null;
@@ -991,6 +1022,43 @@ export type ROUTE_QUERY_RESULT = {
         }
       | {
           _key: string;
+          _type: "cta";
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+            lqip: string | null;
+          } | null;
+          variant?: "naked" | "outline" | "soft" | "solid" | "subtle";
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
           _type: "faq";
           anchor?: string;
           headline?: string;
@@ -1042,6 +1110,43 @@ export type ROUTE_QUERY_RESULT = {
         }
       | {
           _key: string;
+          _type: "hero";
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+            lqip: string | null;
+          } | null;
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
           _type: "imageGallery";
           anchor?: string;
           headline?: string;
@@ -1058,6 +1163,27 @@ export type ROUTE_QUERY_RESULT = {
             _type: "image";
             _key: string;
           }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "imageGallery";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          layout?: "carousel" | "grid";
+          images: Array<{
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            caption?: string;
+            _type: "image";
+            _key: string;
+            lqip: string | null;
+          }> | null;
           links: null;
         }
       | {
@@ -1190,10 +1316,21 @@ export type ROUTE_QUERY_RESULT = {
                 variant?: "outline" | "soft" | "solid" | "subtle";
               }
             | {
+                _key: string;
+                _type: "code";
+                language?: string;
                 filename?: string;
                 code?: string;
-                _type: "codeBlock";
+                highlightedLines?: Array<number>;
+              }
+            | {
                 _key: string;
+                _type: "codeGroup";
+                tabs?: Array<
+                  {
+                    _key: string;
+                  } & Code
+                >;
               }
             | {
                 asset?: SanityImageAssetReference;
@@ -1204,6 +1341,7 @@ export type ROUTE_QUERY_RESULT = {
                 caption?: string;
                 _type: "image";
                 _key: string;
+                lqip: string | null;
               }
           > | null;
           links: null;
@@ -1248,6 +1386,50 @@ export type ROUTE_QUERY_RESULT = {
             alt?: string;
             _type: "image";
           };
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
+          _type: "section";
+          anchor?: string;
+          icon?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          features?: Array<
+            {
+              _key: string;
+            } & FeatureItem
+          >;
+          image: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+            lqip: string | null;
+          } | null;
           orientation?: "horizontal" | "vertical";
           reverse?: boolean;
         }
@@ -1354,7 +1536,15 @@ export type ROUTE_QUERY_RESULT = {
             title: string;
             description?: string;
             icon?: string;
-            image?: CardImage;
+            image: {
+              asset?: SanityImageAssetReference;
+              media?: unknown; // Unable to locate the referenced type "card.image.media" in schema
+              hotspot?: SanityImageHotspot;
+              crop?: SanityImageCrop;
+              alt?: string;
+              _type: "image";
+              lqip: string | null;
+            } | null;
             link: {
               _key: null;
               label: string | null;
@@ -1448,6 +1638,7 @@ export type ROUTE_QUERY_RESULT = {
                   caption?: string;
                   _type: "image";
                   _key: string;
+                  lqip: string | null;
                 }
               | {
                   asset?: SanityImageAssetReference;
@@ -1456,6 +1647,7 @@ export type ROUTE_QUERY_RESULT = {
                   crop?: SanityImageCrop;
                   alt?: string;
                   _type: "image";
+                  lqip: string | null;
                 }
               | null;
             imageCount: number | null;
@@ -1514,6 +1706,43 @@ export type ROUTE_QUERY_RESULT = {
         }
       | {
           _key: string;
+          _type: "cta";
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+            lqip: string | null;
+          } | null;
+          variant?: "naked" | "outline" | "soft" | "solid" | "subtle";
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
           _type: "faq";
           anchor?: string;
           headline?: string;
@@ -1565,6 +1794,43 @@ export type ROUTE_QUERY_RESULT = {
         }
       | {
           _key: string;
+          _type: "hero";
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+            lqip: string | null;
+          } | null;
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
           _type: "imageGallery";
           anchor?: string;
           headline?: string;
@@ -1581,6 +1847,27 @@ export type ROUTE_QUERY_RESULT = {
             _type: "image";
             _key: string;
           }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "imageGallery";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          layout?: "carousel" | "grid";
+          images: Array<{
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            caption?: string;
+            _type: "image";
+            _key: string;
+            lqip: string | null;
+          }> | null;
           links: null;
         }
       | {
@@ -1713,10 +2000,21 @@ export type ROUTE_QUERY_RESULT = {
                 variant?: "outline" | "soft" | "solid" | "subtle";
               }
             | {
+                _key: string;
+                _type: "code";
+                language?: string;
                 filename?: string;
                 code?: string;
-                _type: "codeBlock";
+                highlightedLines?: Array<number>;
+              }
+            | {
                 _key: string;
+                _type: "codeGroup";
+                tabs?: Array<
+                  {
+                    _key: string;
+                  } & Code
+                >;
               }
             | {
                 asset?: SanityImageAssetReference;
@@ -1727,6 +2025,7 @@ export type ROUTE_QUERY_RESULT = {
                 caption?: string;
                 _type: "image";
                 _key: string;
+                lqip: string | null;
               }
           > | null;
           links: null;
@@ -1771,6 +2070,50 @@ export type ROUTE_QUERY_RESULT = {
             alt?: string;
             _type: "image";
           };
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
+          _type: "section";
+          anchor?: string;
+          icon?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          features?: Array<
+            {
+              _key: string;
+            } & FeatureItem
+          >;
+          image: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+            lqip: string | null;
+          } | null;
           orientation?: "horizontal" | "vertical";
           reverse?: boolean;
         }
@@ -1835,6 +2178,7 @@ export type ROUTE_QUERY_RESULT = {
             caption?: string;
             _type: "image";
             _key: string;
+            lqip: string | null;
           }
         | {
             asset?: SanityImageAssetReference;
@@ -1843,6 +2187,7 @@ export type ROUTE_QUERY_RESULT = {
             crop?: SanityImageCrop;
             alt?: string;
             _type: "image";
+            lqip: string | null;
           }
         | null;
       imageCount: number | null;
@@ -1878,6 +2223,7 @@ export type ROUTE_QUERY_RESULT = {
       crop?: SanityImageCrop;
       alt?: string;
       _type: "image";
+      lqip: string | null;
     } | null;
     images: Array<{
       asset?: SanityImageAssetReference;
@@ -1888,6 +2234,7 @@ export type ROUTE_QUERY_RESULT = {
       caption?: string;
       _type: "image";
       _key: string;
+      lqip: string | null;
     }> | null;
     tags: Array<string> | null;
     details: Array<{
@@ -1897,6 +2244,7 @@ export type ROUTE_QUERY_RESULT = {
       _type: "detail";
       _key: string;
     }> | null;
+    sections: Array<string> | null;
     seo: Seo | null;
     collection: {
       title: string;
@@ -1974,10 +2322,21 @@ export type ROUTE_QUERY_RESULT = {
           variant?: "outline" | "soft" | "solid" | "subtle";
         }
       | {
+          _key: string;
+          _type: "code";
+          language?: string;
           filename?: string;
           code?: string;
-          _type: "codeBlock";
+          highlightedLines?: Array<number>;
+        }
+      | {
           _key: string;
+          _type: "codeGroup";
+          tabs?: Array<
+            {
+              _key: string;
+            } & Code
+          >;
         }
       | {
           asset?: SanityImageAssetReference;
@@ -1988,6 +2347,7 @@ export type ROUTE_QUERY_RESULT = {
           caption?: string;
           _type: "image";
           _key: string;
+          lqip: string | null;
         }
     > | null;
     blocks: Array<
@@ -2037,7 +2397,15 @@ export type ROUTE_QUERY_RESULT = {
             title: string;
             description?: string;
             icon?: string;
-            image?: CardImage;
+            image: {
+              asset?: SanityImageAssetReference;
+              media?: unknown; // Unable to locate the referenced type "card.image.media" in schema
+              hotspot?: SanityImageHotspot;
+              crop?: SanityImageCrop;
+              alt?: string;
+              _type: "image";
+              lqip: string | null;
+            } | null;
             link: {
               _key: null;
               label: string | null;
@@ -2131,6 +2499,7 @@ export type ROUTE_QUERY_RESULT = {
                   caption?: string;
                   _type: "image";
                   _key: string;
+                  lqip: string | null;
                 }
               | {
                   asset?: SanityImageAssetReference;
@@ -2139,6 +2508,7 @@ export type ROUTE_QUERY_RESULT = {
                   crop?: SanityImageCrop;
                   alt?: string;
                   _type: "image";
+                  lqip: string | null;
                 }
               | null;
             imageCount: number | null;
@@ -2197,6 +2567,43 @@ export type ROUTE_QUERY_RESULT = {
         }
       | {
           _key: string;
+          _type: "cta";
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+            lqip: string | null;
+          } | null;
+          variant?: "naked" | "outline" | "soft" | "solid" | "subtle";
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
           _type: "faq";
           anchor?: string;
           headline?: string;
@@ -2248,6 +2655,43 @@ export type ROUTE_QUERY_RESULT = {
         }
       | {
           _key: string;
+          _type: "hero";
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          image: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+            lqip: string | null;
+          } | null;
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
           _type: "imageGallery";
           anchor?: string;
           headline?: string;
@@ -2264,6 +2708,27 @@ export type ROUTE_QUERY_RESULT = {
             _type: "image";
             _key: string;
           }>;
+          links: null;
+        }
+      | {
+          _key: string;
+          _type: "imageGallery";
+          anchor?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          layout?: "carousel" | "grid";
+          images: Array<{
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            caption?: string;
+            _type: "image";
+            _key: string;
+            lqip: string | null;
+          }> | null;
           links: null;
         }
       | {
@@ -2396,10 +2861,21 @@ export type ROUTE_QUERY_RESULT = {
                 variant?: "outline" | "soft" | "solid" | "subtle";
               }
             | {
+                _key: string;
+                _type: "code";
+                language?: string;
                 filename?: string;
                 code?: string;
-                _type: "codeBlock";
+                highlightedLines?: Array<number>;
+              }
+            | {
                 _key: string;
+                _type: "codeGroup";
+                tabs?: Array<
+                  {
+                    _key: string;
+                  } & Code
+                >;
               }
             | {
                 asset?: SanityImageAssetReference;
@@ -2410,6 +2886,7 @@ export type ROUTE_QUERY_RESULT = {
                 caption?: string;
                 _type: "image";
                 _key: string;
+                lqip: string | null;
               }
           > | null;
           links: null;
@@ -2454,6 +2931,50 @@ export type ROUTE_QUERY_RESULT = {
             alt?: string;
             _type: "image";
           };
+          orientation?: "horizontal" | "vertical";
+          reverse?: boolean;
+        }
+      | {
+          _key: string;
+          _type: "section";
+          anchor?: string;
+          icon?: string;
+          headline?: string;
+          title?: string;
+          description?: string;
+          links: Array<{
+            _key: string;
+            label: string | null;
+            newTab: boolean | null;
+            icon: string | null;
+            trailingIcon: string | null;
+            color:
+              | "error"
+              | "info"
+              | "neutral"
+              | "primary"
+              | "secondary"
+              | "success"
+              | "warning"
+              | null;
+            variant:
+              "ghost" | "link" | "outline" | "soft" | "solid" | "subtle" | null;
+            to: string | null | "/";
+          }> | null;
+          features?: Array<
+            {
+              _key: string;
+            } & FeatureItem
+          >;
+          image: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+            lqip: string | null;
+          } | null;
           orientation?: "horizontal" | "vertical";
           reverse?: boolean;
         }
@@ -2518,6 +3039,7 @@ export type ROUTE_QUERY_RESULT = {
             caption?: string;
             _type: "image";
             _key: string;
+            lqip: string | null;
           }
         | {
             asset?: SanityImageAssetReference;
@@ -2526,6 +3048,7 @@ export type ROUTE_QUERY_RESULT = {
             crop?: SanityImageCrop;
             alt?: string;
             _type: "image";
+            lqip: string | null;
           }
         | null;
       imageCount: number | null;
@@ -2708,7 +3231,7 @@ export type SITEMAP_QUERY_RESULT = {
 // Query TypeMap
 declare global {
   interface SanityQueries {
-    '{\n  "page": *[_type == "page" && slug.current == $path][0]{\n    _id,\n    _type,\n    title,\n    seo,\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  _type == "cardGrid" => { cards[]{ ..., link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]),\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => {\n    body[]{\n      ...,\n      _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n    }\n  }\n}\n  },\n  "collection": *[_type == "collection" && slug.current == $path][0]{\n    _id,\n    _type,\n    title,\n    "slug": slug.current,\n    description,\n    entryLabel,\n    layout,\n    sort,\n    tagFilter,\n    seo,\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  _type == "cardGrid" => { cards[]{ ..., link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]),\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => {\n    body[]{\n      ...,\n      _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n    }\n  }\n},\n    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current)] | order(publishedAt desc){\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]),\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  "entry": *[_type == "entry" && slug.current == $child && collection->slug.current == $parent][0]{\n    _id,\n    _type,\n    title,\n    "slug": slug.current,\n    publishedAt,\n    _updatedAt,\n    excerpt,\n    coverImage,\n    images,\n    tags,\n    details,\n    seo,\n    "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter },\n    authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n},\n    body[]{\n      ...,\n      _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n    },\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  _type == "cardGrid" => { cards[]{ ..., link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]),\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => {\n    body[]{\n      ...,\n      _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n    }\n  }\n},\n    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && count(tags[@ in ^.^.tags]) > 0]\n      | order(publishedAt desc)[0...3]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]),\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  }\n}': ROUTE_QUERY_RESULT;
+    '{\n  "page": *[_type == "page" && slug.current == $path][0]{\n    _id,\n    _type,\n    title,\n    seo,\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  defined(image) => { image{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  defined(images) => { images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  _type == "cardGrid" => { cards[]{ ..., image{\n  ...,\n  "lqip": asset->metadata.lqip\n}, link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => { body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n} }\n}\n  },\n  "collection": *[_type == "collection" && slug.current == $path][0]{\n    _id,\n    _type,\n    title,\n    "slug": slug.current,\n    description,\n    entryLabel,\n    layout,\n    sort,\n    tagFilter,\n    seo,\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  defined(image) => { image{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  defined(images) => { images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  _type == "cardGrid" => { cards[]{ ..., image{\n  ...,\n  "lqip": asset->metadata.lqip\n}, link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => { body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n} }\n},\n    "entries": *[_type == "entry" && collection._ref == ^._id && defined(slug.current)] | order(publishedAt desc){\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  "entry": *[_type == "entry" && slug.current == $child && collection->slug.current == $parent][0]{\n    _id,\n    _type,\n    title,\n    "slug": slug.current,\n    publishedAt,\n    _updatedAt,\n    excerpt,\n    coverImage{\n  ...,\n  "lqip": asset->metadata.lqip\n},\n    images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n},\n    tags,\n    details,\n    sections,\n    seo,\n    "collection": collection->{ title, "slug": slug.current, entryLabel, showRelated, tagFilter },\n    authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n},\n    body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n},\n    blocks[]{\n  ...,\n  links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  defined(image) => { image{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  defined(images) => { images[]{\n  ...,\n  "lqip": asset->metadata.lqip\n} },\n  _type == "cardGrid" => { cards[]{ ..., image{\n  ...,\n  "lqip": asset->metadata.lqip\n}, link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "pricing" => { plans[]{ ..., button{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} } },\n  _type == "collectionList" => {\n    link{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n    "collection": collection->{ title, "slug": slug.current, layout, sort },\n    "entries": *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && (!defined(^.tag) || ^.tag in tags)]\n      | order(publishedAt desc)[0...100]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  },\n  _type == "richText" => { body[]{\n  ...,\n  _type == "image" => { "lqip": asset->metadata.lqip },\n  _type == "callout" => { links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n} }\n} }\n},\n    "related": *[_type == "entry" && collection._ref == ^.collection._ref && _id != ^._id && count(tags[@ in ^.^.tags]) > 0]\n      | order(publishedAt desc)[0...3]{\n  _id,\n  title,\n  "slug": slug.current,\n  "path": "/" + collection->slug.current + "/" + slug.current,\n  publishedAt,\n  excerpt,\n  "cover": coalesce(coverImage, images[0]){\n  ...,\n  "lqip": asset->metadata.lqip\n},\n  "imageCount": count(images),\n  tags,\n  order,\n  authors[]->{\n  _id,\n  name,\n  role,\n  avatar\n}\n}\n  }\n}': ROUTE_QUERY_RESULT;
     '*[_id == "settings"][0]{\n  title,\n  description,\n  logo,\n  ogImage,\n  navigation[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  headerLinks[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n},\n  footerColumns[]{\n    _key,\n    label,\n    links[]{\n  _key,\n  label,\n  newTab,\n  icon,\n  trailingIcon,\n  color,\n  variant,\n  "to": select(\n    linkType == "internal" => select(\n      page->_type == "entry" => "/" + page->collection->slug.current + "/" + page->slug.current,\n      page->_type == "page" && page->slug.current == "home" => "/",\n      "/" + page->slug.current\n    ),\n    href\n  )\n}\n  },\n  footerText,\n  socialLinks\n}': SETTINGS_QUERY_RESULT;
     '{\n  "pages": *[_type == "page" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },\n  "collections": *[_type == "collection" && defined(slug.current) && seo.noIndex != true]{ "slug": slug.current, _updatedAt },\n  "entries": *[_type == "entry" && defined(slug.current) && defined(collection->slug.current) && seo.noIndex != true]{\n    "path": "/" + collection->slug.current + "/" + slug.current,\n    _updatedAt\n  }\n}': SITEMAP_QUERY_RESULT;
   }

@@ -41,3 +41,12 @@
     font-family: var(--font-heading);
   }
 }
+
+/* Code blocks highlighted by Shiki (server/api/highlight.post.ts) */
+[data-shiki] span {
+  color: var(--shiki-light);
+}
+
+.dark [data-shiki] span {
+  color: var(--shiki-dark);
+}

@@ -4,6 +4,7 @@ import { entry } from './documents/entry'
 import { page } from './documents/page'
 import { settings } from './documents/settings'
 import { blockContent } from './objects/block-content'
+import { codeGroup } from './objects/code-group'
 import { featureItem } from './objects/feature-item'
 import { link } from './objects/link'
 import { pageBuilder } from './objects/page-builder'
@@ -31,6 +32,7 @@ export const schemaTypes = [
   settings,
   // Objects
   blockContent,
+  codeGroup,
   featureItem,
   link,
   pageBuilder,
