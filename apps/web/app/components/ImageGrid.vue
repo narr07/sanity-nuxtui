@@ -25,6 +25,17 @@ const gridClass = computed(() => {
   return 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
 })
 
+// Arrows and dots sit in a row under the slides, inside the container. The
+// default arrows hang outside the carousel and push the page wider than the screen.
+const carouselUi = {
+  controls: 'mt-6 flex items-center justify-between gap-6',
+  arrows: 'order-last flex gap-2',
+  prev: 'static translate-y-0 rounded-none',
+  next: 'static translate-y-0 rounded-none',
+  dots: 'static inset-auto justify-start gap-2',
+  dot: 'h-0.5 w-8 rounded-none'
+}
+
 const open = ref(false)
 const startIndex = ref(0)
 
@@ -42,19 +53,22 @@ function show(index: number) {
     arrows
     dots
     loop
-    class="w-full"
-    :ui="{ item: 'basis-full', container: 'items-center' }"
+    class="reveal min-w-0"
+    :ui="{ ...carouselUi, item: items.length > 1 ? 'basis-full sm:basis-1/2' : 'basis-full' }"
   >
     <figure>
-      <AppImage
-        :image="item"
-        :width="1280"
-        sizes="100vw xl:1280px"
-        class="h-auto max-h-[70vh] w-full rounded-lg object-contain"
-      />
+      <div class="overflow-hidden bg-elevated">
+        <AppImage
+          :image="item"
+          :width="960"
+          :height="640"
+          sizes="100vw sm:50vw xl:640px"
+          class="aspect-[3/2] h-auto w-full object-cover"
+        />
+      </div>
       <figcaption
         v-if="item.caption"
-        class="mt-2 text-center text-sm text-muted"
+        class="mt-3 text-sm text-muted"
       >
         {{ item.caption }}
       </figcaption>
@@ -70,7 +84,8 @@ function show(index: number) {
         v-for="(image, index) in items"
         :key="image._key"
         type="button"
-        class="group relative aspect-square overflow-hidden rounded-lg bg-elevated focus-visible:outline-2 focus-visible:outline-primary"
+        :style="revealIndex(index, 4)"
+        class="reveal group relative aspect-square overflow-hidden bg-elevated focus-visible:outline-2 focus-visible:outline-primary"
         :aria-label="`Open image ${index + 1}${image.alt ? `: ${image.alt}` : ''}`"
         @click="show(index)"
       >
@@ -79,7 +94,7 @@ function show(index: number) {
           :width="600"
           :height="600"
           sizes="50vw sm:33vw lg:25vw"
-          class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+          class="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         />
       </button>
     </div>
@@ -97,15 +112,15 @@ function show(index: number) {
           :start-index="startIndex"
           arrows
           loop
-          class="w-full"
-          :ui="{ item: 'basis-full', container: 'items-center' }"
+          class="min-w-0 w-full"
+          :ui="{ ...carouselUi, item: 'basis-full', container: 'items-center', controls: 'mt-4 flex justify-center', arrows: 'flex gap-2' }"
         >
           <figure class="flex flex-col items-center">
             <AppImage
               :image="item"
               :width="1600"
               sizes="100vw"
-              class="h-auto max-h-[78vh] w-auto rounded-lg object-contain"
+              class="h-auto max-h-[78vh] w-auto object-contain"
             />
             <figcaption
               v-if="item.caption || item.alt"

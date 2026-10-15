@@ -229,6 +229,9 @@ importers:
       '@sanity/client':
         specifier: ^7.27.0
         version: 7.27.0
+      '@sanity/preview-url-secret':
+        specifier: ^4.1.5
+        version: 4.1.5(@sanity/client@7.27.0)
       '@shikijs/core':
         specifier: 4.5.0
         version: 4.5.0

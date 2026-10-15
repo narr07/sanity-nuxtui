@@ -164,7 +164,12 @@ The `link` object (buttons, navigation, footer) points to a page, collection or 
 
 Click any text to open its field, and drag blocks in the preview to reorder them. Drafts appear as you type. The token is only used server-side.
 
-A deployment with a read token is never cached (cached pages cannot show drafts). In production, use two deployments of `apps/web`: the public site without a token, and a preview deployment with the token that the Studio's `SANITY_STUDIO_PREVIEW_URL` points to.
+Visitors never see drafts: the site only shows them in a browser that went through `/preview/enable`, which the Presentation tool opens with a one-time secret.
+
+Cached pages and drafts in production:
+
+- **Vercel**: one deployment does both. Pages stay cached with ISR, and `/preview/enable` also sets Vercel's `__prerender_bypass` cookie, so the Presentation tool skips the cache and sees drafts ([`server/preview/enable.ts`](apps/web/server/preview/enable.ts)).
+- **Other hosts** (Cloudflare, Node): caching is turned off when a read token is set, because their cache cannot be skipped for a single visitor. Use two deployments of `apps/web`: the public site without a token, and a preview deployment with the token that the Studio's `SANITY_STUDIO_PREVIEW_URL` points to.
 
 ## Images
 
@@ -244,7 +249,11 @@ The list of URLs to prerender comes from Sanity (`apps/web/prerender-routes.ts`)
 
 ### Studio
 
-`pnpm deploy:studio` hosts it on Sanity (`<name>.sanity.studio`). Or build it with `pnpm --filter studio build` and serve `apps/studio/dist` anywhere.
+`pnpm deploy:studio` hosts it on Sanity. The first time, pass a hostname: `pnpm --filter studio exec sanity deploy --url <name>` publishes it at `https://<name>.sanity.studio` and prints an app ID. Put that ID in `SANITY_STUDIO_APP_ID` (`apps/studio/.env`) so later `pnpm deploy:studio` runs update the same studio. Then add the studio to CORS: `pnpm --filter studio exec sanity cors add https://<name>.sanity.studio --credentials`.
+
+`SANITY_STUDIO_*` variables are built into the studio, so redeploy after changing them. `sanity deploy` builds in production mode and reads `apps/studio/.env.production` after `.env`, so keep `SANITY_STUDIO_PREVIEW_URL=http://localhost:3000` in `.env` for local work and put the deployed site URL in `.env.production`. The hosted Studio can still preview a local dev server: type `http://localhost:3000` in the Presentation address bar.
+
+Or build it with `pnpm --filter studio build` and serve `apps/studio/dist` anywhere.
 
 ### Environment variables (site)
 
@@ -255,10 +264,10 @@ Set these as **build** variables: the project ID and site URL are read at build 
 | `NUXT_SANITY_PROJECT_ID`     | yes      | Sanity project ID                                                          |
 | `NUXT_SANITY_DATASET`        | yes      | Dataset, usually `production`                                              |
 | `NUXT_SITE_URL`              | yes      | Public URL, e.g. `https://example.com` (sitemap, canonical, OG image URLs) |
-| `NUXT_APP_SECRET`            | yes      | Signs OG image URLs. Generate with `openssl rand -base64 32` |
+| `NUXT_APP_SECRET`            | yes      | Signs OG image URLs. Generate with `npx nuxt-og-image generate-secret` |
 | `NUXT_SITE_NAME`             | no       | Fallback site name                                                         |
 | `NUXT_CACHE_TTL`             | no       | Seconds before a cached page is refreshed. Default `60`, `0` disables caching |
-| `NUXT_SANITY_API_READ_TOKEN` | no       | Enables Visual Editing; disables caching (use on a preview deployment)     |
+| `NUXT_SANITY_API_READ_TOKEN` | no       | Enables Visual Editing. Turns caching off on hosts other than Vercel       |
 | `NUXT_SANITY_STUDIO_URL`     | no       | Studio URL, for Visual Editing overlays                                    |
 
 After deploying, add the site URL to CORS (`pnpm --filter studio exec sanity cors add https://example.com --credentials`) and set `SANITY_STUDIO_PREVIEW_URL` in the Studio to your preview deployment.
@@ -280,7 +289,7 @@ Pages are cached and refreshed in the background, so visitors get a cached page 
 2. Add the environment variables above.
 3. Deploy. ISR and OG images (native renderer, `@takumi-rs/core`) work without extra configuration.
 
-For Visual Editing, create a second Vercel project from the same repository with `NUXT_SANITY_API_READ_TOKEN` set, and point `SANITY_STUDIO_PREVIEW_URL` to it.
+For Visual Editing, add `NUXT_SANITY_API_READ_TOKEN` and `NUXT_SANITY_STUDIO_URL` to the same project and redeploy. Pages stay cached for visitors (see [Visual Editing](#visual-editing)). Then point the Studio's `SANITY_STUDIO_PREVIEW_URL` to the site and add the site to CORS.
 
 ### Cloudflare Workers
 

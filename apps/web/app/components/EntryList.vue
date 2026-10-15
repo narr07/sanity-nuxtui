@@ -45,7 +45,9 @@ function authors(entry: EntryCard) {
       :authors="authors(entry)"
       :badge="entry.tags?.[0] ? { label: entry.tags[0], color: 'neutral', variant: 'subtle' } : undefined"
       :orientation="featured && index === 0 ? 'horizontal' : 'vertical'"
+      class="reveal"
       :class="featured && index === 0 ? 'col-span-full' : undefined"
+      :style="revealIndex(featured ? Math.max(index - 1, 0) : index)"
     />
   </UBlogPosts>
 
@@ -54,17 +56,18 @@ function authors(entry: EntryCard) {
     :class="gridColumns(entries.length)"
   >
     <NuxtLink
-      v-for="entry in entries"
+      v-for="(entry, index) in entries"
       :key="entry._id"
       :to="stegaClean(entry.path)"
-      class="group relative block aspect-[4/3] overflow-hidden rounded-lg bg-elevated focus-visible:outline-2 focus-visible:outline-primary"
+      :style="revealIndex(index)"
+      class="reveal group relative block aspect-[4/3] overflow-hidden bg-elevated focus-visible:outline-2 focus-visible:outline-primary"
     >
       <AppImage
         v-if="entry.cover?.asset"
         :image="entry.cover"
         :width="640"
         sizes="100vw sm:50vw lg:33vw"
-        class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+        class="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
       />
       <div class="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 to-transparent p-4 pt-12">
         <p class="font-semibold text-white">
@@ -84,7 +87,7 @@ function authors(entry: EntryCard) {
     :class="gridColumns(entries.length)"
   >
     <UPageCard
-      v-for="entry in entries"
+      v-for="(entry, index) in entries"
       :key="entry._id"
       :title="entry.title"
       :description="entry.excerpt ?? undefined"
@@ -92,13 +95,15 @@ function authors(entry: EntryCard) {
       variant="subtle"
       reverse
       :ui="cardUi"
+      class="reveal"
+      :style="revealIndex(index)"
     >
       <AppImage
         v-if="entry.cover?.asset"
         :image="entry.cover"
         :width="640"
         sizes="100vw sm:50vw lg:33vw"
-        class="aspect-[4/3] h-auto w-full rounded-md object-cover"
+        class="aspect-[4/3] h-auto w-full object-cover"
       />
       <template
         v-if="entry.tags?.length"

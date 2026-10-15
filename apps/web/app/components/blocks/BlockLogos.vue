@@ -16,8 +16,9 @@ const items = computed(() => props.block.items?.map((item) => {
 </script>
 
 <template>
-  <UContainer class="py-12 sm:py-16">
+  <UContainer class="border-t border-default py-12 sm:py-16">
     <UPageLogos
+      class="reveal"
       :title="block.title"
       :items="items"
       :marquee="block.marquee"

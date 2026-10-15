@@ -7,9 +7,9 @@ const props = defineProps<{
   index: number
 }>()
 
-const items = computed(() => props.block.items?.map(item => ({
+const items = computed(() => props.block.items?.map((item, itemIndex) => ({
   value: item._key,
-  label: item.question,
+  label: `${String(itemIndex + 1).padStart(2, '0')}  ${item.question}`,
   content: item.answer
 })))
 </script>
@@ -17,15 +17,28 @@ const items = computed(() => props.block.items?.map(item => ({
 <template>
   <UPageSection
     :id="stegaClean(block.anchor)"
-    :headline="block.headline"
     :title="block.title"
     :description="block.description"
+    :ui="sectionUi"
   >
-    <UAccordion
-      :items="items"
-      type="multiple"
-      class="mx-auto w-full max-w-3xl"
-      :ui="{ trigger: 'text-base', body: 'text-base text-muted' }"
-    />
+    <template
+      v-if="block.headline"
+      #headline
+    >
+      <SectionLabel
+        :text="block.headline"
+        :index="index"
+      />
+    </template>
+
+    <!-- Questions sit in the right-hand columns of the grid, under the title -->
+    <div class="lg:grid lg:grid-cols-12 lg:gap-x-8">
+      <UAccordion
+        :items="items"
+        type="multiple"
+        class="reveal border-t border-default lg:col-span-9 lg:col-start-4"
+        :ui="{ label: 'whitespace-pre-wrap', body: 'text-base text-muted max-w-2xl' }"
+      />
+    </div>
   </UPageSection>
 </template>

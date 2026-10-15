@@ -11,17 +11,29 @@ defineProps<{
 <template>
   <UPageSection
     :id="stegaClean(block.anchor)"
-    :headline="block.headline"
     :title="block.title"
     :description="block.description"
+    :ui="sectionUi"
   >
+    <template
+      v-if="block.headline"
+      #headline
+    >
+      <SectionLabel
+        :text="block.headline"
+        :index="index"
+      />
+    </template>
+
     <UPageColumns>
       <UPageCard
-        v-for="item in block.items"
+        v-for="(item, itemIndex) in block.items"
         :key="item._key"
         variant="subtle"
         :description="item.quote"
-        :ui="{ description: 'text-base text-default before:content-[open-quote] after:content-[close-quote]' }"
+        class="reveal"
+        :style="revealIndex(itemIndex)"
+        :ui="{ description: 'font-heading text-xl/8 tracking-tight text-highlighted before:content-[open-quote] after:content-[close-quote]' }"
       >
         <template #footer>
           <UUser

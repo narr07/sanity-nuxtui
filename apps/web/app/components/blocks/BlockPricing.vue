@@ -11,13 +11,23 @@ defineProps<{
 <template>
   <UPageSection
     :id="stegaClean(block.anchor)"
-    :headline="block.headline"
     :title="block.title"
     :description="block.description"
+    :ui="sectionUi"
   >
+    <template
+      v-if="block.headline"
+      #headline
+    >
+      <SectionLabel
+        :text="block.headline"
+        :index="index"
+      />
+    </template>
+
     <UPricingPlans>
       <UPricingPlan
-        v-for="plan in block.plans"
+        v-for="(plan, planIndex) in block.plans"
         :key="plan._key"
         :title="plan.title"
         :description="plan.description"
@@ -33,6 +43,8 @@ defineProps<{
         :highlight="plan.highlight"
         :scale="plan.scale"
         :variant="stegaClean(plan.variant)"
+        class="reveal"
+        :style="revealIndex(planIndex, block.plans?.length)"
       />
     </UPricingPlans>
   </UPageSection>

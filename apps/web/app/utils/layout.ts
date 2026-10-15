@@ -11,3 +11,11 @@ export function gridColumns(count: number | null | undefined, { wide = false } =
 // when cards in the same row have different heights. Flex keeps the title right
 // under the image and the footer at the bottom.
 export const cardUi = { container: 'lg:flex' }
+
+// Section headers settle in as they scroll into view (see `reveal` in main.css)
+export const sectionUi = { title: 'reveal', description: 'reveal', links: 'reveal' }
+
+// Staggers items that sit side by side in a grid row of `columns`
+export function revealIndex(index: number, columns = 3) {
+  return { '--reveal-index': index % columns }
+}

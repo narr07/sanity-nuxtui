@@ -8,6 +8,10 @@ import { ALL_ENTRY_FIELDS } from './schemaTypes/shared/entry-fields'
 import { resolve } from './presentation/resolve'
 import { structure } from './structure'
 
+// The site Presentation opens. `sanity dev` reads it from .env, `sanity deploy`
+// from .env.production, so the hosted Studio previews the live site.
+const previewUrl = process.env.SANITY_STUDIO_PREVIEW_URL || 'http://localhost:3000'
+
 export default defineConfig({
   name: 'default',
   title: 'Sanity × Nuxt UI',
@@ -19,8 +23,11 @@ export default defineConfig({
     structureTool({ structure }),
     presentationTool({
       resolve,
+      // A local dev server can be previewed from the hosted Studio too: type its
+      // URL in the Presentation address bar
+      allowOrigins: [previewUrl, 'http://localhost:*'],
       previewUrl: {
-        origin: process.env.SANITY_STUDIO_PREVIEW_URL || 'http://localhost:3000',
+        initial: previewUrl,
         previewMode: {
           enable: '/preview/enable',
           disable: '/preview/disable'

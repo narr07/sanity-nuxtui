@@ -21,16 +21,26 @@ const items = computed(() => (props.block.items ?? []).map(item => ({
 <template>
   <UPageSection
     :id="stegaClean(block.anchor)"
-    :headline="block.headline"
     :title="block.title"
     :description="block.description"
+    :ui="sectionUi"
   >
+    <template
+      v-if="block.headline"
+      #headline
+    >
+      <SectionLabel
+        :text="block.headline"
+        :index="index"
+      />
+    </template>
+
     <UTimeline
       :items="items"
       :orientation="orientation"
       :color="stegaClean(block.color) ?? 'primary'"
       :default-value="items.at(-1)?.value"
-      :class="orientation === 'vertical' ? 'mx-auto w-full max-w-2xl' : 'w-full overflow-x-auto pb-2'"
+      :class="orientation === 'vertical' ? 'reveal w-full max-w-2xl lg:ml-[calc(25%+0.5rem)]' : 'reveal w-full overflow-x-auto pb-2'"
     />
   </UPageSection>
 </template>

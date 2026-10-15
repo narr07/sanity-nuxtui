@@ -1,10 +1,16 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { createHash } from 'node:crypto'
 import { getSanityRoutes } from './prerender-routes'
 
 const readToken = process.env.NUXT_SANITY_API_READ_TOKEN
 const projectId = process.env.NUXT_SANITY_PROJECT_ID || ''
 const dataset = process.env.NUXT_SANITY_DATASET || 'production'
 const apiVersion = '2026-10-01'
+
+// A fixed browser list for the CSS tools (autoprefixer, cssnano). Without it they
+// read the browserslist config of @sanity/visual-editing-standalone, which extends
+// a package that is not installed, and the build fails once Visual Editing is on.
+process.env.BROWSERSLIST ??= 'defaults'
 
 // Rendering mode (NUXT_RENDER_MODE):
 //   ssr     server rendering with ISR/SWR caching (default)
@@ -19,17 +25,22 @@ const prerenderAll = renderMode !== 'ssr'
 // Caching. Pages are served from cache and refreshed in the background after
 // NUXT_CACHE_TTL seconds (default 60): ISR on Vercel, stale-while-revalidate
 // everywhere else (Cloudflare, Node). Set NUXT_CACHE_TTL=0 to turn it off.
-// Deployments with a read token (Visual Editing / Presentation) are never cached,
-// because cached pages cannot show drafts.
+// With a read token (Visual Editing / Presentation), Vercel keeps the cache:
+// /preview/enable gives the Studio a cookie that skips it (server/preview/enable.ts).
+// Other hosts cannot skip their cache per visitor, so they turn it off.
 const preset = process.env.NITRO_PRESET ?? ''
 const isVercel = process.env.VERCEL === '1' || preset.startsWith('vercel')
-const cacheTtl = readToken || renderMode === 'static' ? 0 : Number(process.env.NUXT_CACHE_TTL ?? 60)
+const cacheTtl = (readToken && !isVercel) || renderMode === 'static' ? 0 : Number(process.env.NUXT_CACHE_TTL ?? 60)
+// Derived from the read token, so it stays secret and needs no extra variable
+const isrBypassToken = isVercel && readToken && cacheTtl > 0
+  ? createHash('sha256').update(`isr-bypass:${readToken}`).digest('hex')
+  : undefined
 const noCache = isVercel ? { isr: false } : { cache: false as const }
 const routeRules = cacheTtl > 0
   ? {
       '/**': isVercel
         // `tag` filters collection pages, so it must be part of the cache key
-        ? { isr: { expiration: cacheTtl, allowQuery: ['tag'] } }
+        ? { isr: { expiration: cacheTtl, allowQuery: ['tag'], bypassToken: isrBypassToken } }
         : { swr: cacheTtl },
       // nuxt-og-image caches generated images itself; a wildcard ISR/SWR rule breaks /_og/
       '/_og/**': noCache,
@@ -66,6 +77,11 @@ export default defineNuxtConfig({
     enabled: true
   },
 
+  app: {
+    // A short fade between pages (styles in main.css)
+    pageTransition: { name: 'page', mode: 'out-in' }
+  },
+
   css: ['~/assets/css/main.css'],
 
   // Used by sitemap, robots, canonical URLs, OG images and schema.org.
@@ -86,6 +102,18 @@ export default defineNuxtConfig({
     content: true
   },
 
+  runtimeConfig: {
+    isrBypassToken: isrBypassToken ?? ''
+  },
+
+  experimental: {
+    // Where page data lives for cached pages. With ISR/SWR the HTML and a separate
+    // _payload.json are cached independently, so a refreshed page could hydrate with
+    // older data and flip back to old content. ssr keeps the data inside the HTML;
+    // static needs payload files because there is no server.
+    payloadExtraction: renderMode === 'static' ? true : renderMode === 'hybrid' ? 'client' : false
+  },
+
   compatibilityDate: '2026-06-30',
 
   nitro: {
@@ -102,6 +130,14 @@ export default defineNuxtConfig({
       ? { crawlLinks: true, routes: ['/', '/sitemap.xml', '/robots.txt'] }
       : undefined
   },
+
+  // Preview routes that also skip the Vercel ISR cache (see isrBypassToken)
+  serverHandlers: isrBypassToken
+    ? [
+        { route: '/preview/enable', handler: '~~/server/preview/enable.ts' },
+        { route: '/preview/disable', handler: '~~/server/preview/disable.ts', middleware: true }
+      ]
+    : [],
 
   hooks: {
     async 'prerender:routes'({ routes }) {
@@ -166,7 +202,9 @@ export default defineNuxtConfig({
       ? {
           token: readToken,
           studioUrl: process.env.NUXT_SANITY_STUDIO_URL || 'http://localhost:3333',
-          stega: true
+          stega: true,
+          // On Vercel, /preview/enable is served by server/preview/enable.ts instead
+          previewMode: isrBypassToken ? { enable: '/preview/sanity-enable' } : undefined
         }
       : undefined
   },

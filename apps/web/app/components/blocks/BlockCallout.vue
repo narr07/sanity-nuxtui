@@ -18,7 +18,7 @@ defineProps<{
       :variant="stegaClean(block.variant) ?? 'subtle'"
       :actions="toButtons(block.links)"
       orientation="horizontal"
-      class="mx-auto max-w-4xl"
+      class="reveal mx-auto max-w-4xl"
     />
   </UContainer>
 </template>

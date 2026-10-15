@@ -9,6 +9,8 @@ const { data: settings } = await useSanityQuery(SETTINGS_QUERY)
 
 const siteConfig = useSiteConfig()
 const siteTitle = computed(() => stegaClean(settings.value?.title) || siteConfig.name)
+// About 0.42em per character in Funnel Display at this tracking
+const wordmarkSize = computed(() => `min(15rem, calc((min(100vw, 80rem) - 4rem) / ${((siteTitle.value?.length ?? 8) + 1) * 0.42}))`)
 const urlFor = useSanityImage()
 const route = useRoute()
 
@@ -115,12 +117,21 @@ siteSeo.value = { name: siteTitle.value, ogImage: settings.value?.ogImage }
       <NuxtPage />
     </UMain>
 
-    <USeparator />
-
-    <UFooter :ui="{ top: footerColumns.length ? 'py-12' : 'hidden' }">
+    <UFooter :ui="{ root: 'border-t border-default', top: 'pt-16 pb-10 sm:pt-24 lg:pt-24 lg:pb-12' }">
       <template #top>
         <UContainer>
-          <UFooterColumns :columns="footerColumns" />
+          <UFooterColumns
+            v-if="footerColumns.length"
+            :columns="footerColumns"
+          />
+          <!-- The site name set as a wordmark closes every page, sized to fill the row -->
+          <p
+            aria-hidden="true"
+            class="reveal mt-16 font-heading leading-[0.85] font-semibold tracking-[-0.06em] whitespace-nowrap text-highlighted select-none sm:mt-24"
+            :style="{ fontSize: wordmarkSize }"
+          >
+            {{ siteTitle }}<span class="text-primary">.</span>
+          </p>
         </UContainer>
       </template>
 

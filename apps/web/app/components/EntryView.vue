@@ -49,11 +49,22 @@ useSchemaOrg([
 
 <template>
   <div>
+    <!-- Reading progress, a thin line under the header -->
+    <div
+      aria-hidden="true"
+      class="scroll-progress fixed inset-x-0 top-(--ui-header-height) z-40 h-0.5 bg-primary"
+    />
+
     <UContainer>
       <UPage>
         <UPageHeader
           :title="entry.title"
           :description="entry.excerpt ?? undefined"
+          :ui="{
+            headline: 'intro',
+            title: 'intro [--intro-index:1] text-4xl sm:text-6xl',
+            description: 'intro [--intro-index:2]'
+          }"
         >
           <template #headline>
             <UButton
@@ -75,7 +86,7 @@ useSchemaOrg([
 
           <div
             v-if="uses('authors') && entry.authors?.length"
-            class="mt-4 flex flex-wrap gap-6"
+            class="intro mt-6 flex flex-wrap gap-6 [--intro-index:3]"
           >
             <UUser
               v-for="author in entry.authors"
@@ -94,12 +105,12 @@ useSchemaOrg([
             :width="1200"
             sizes="100vw xl:1200px"
             loading="eager"
-            class="aspect-video h-auto w-full rounded-lg object-cover"
+            class="intro aspect-video h-auto w-full object-cover [--intro-index:4]"
           />
 
           <dl
             v-if="uses('details') && entry.details?.length"
-            class="grid grid-cols-2 gap-x-6 gap-y-4 rounded-lg border border-default p-6 sm:grid-cols-4"
+            class="reveal grid grid-cols-2 gap-x-6 gap-y-6 border-y border-default py-6 sm:grid-cols-4"
           >
             <div
               v-for="detail in entry.details"

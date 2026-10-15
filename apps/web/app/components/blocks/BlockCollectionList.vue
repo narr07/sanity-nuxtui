@@ -15,10 +15,20 @@ const viewAll = computed(() => toButton(props.block.link))
 <template>
   <UPageSection
     :id="stegaClean(block.anchor)"
-    :headline="block.headline"
     :title="block.title ?? block.collection?.title"
     :description="block.description"
+    :ui="sectionUi"
   >
+    <template
+      v-if="block.headline"
+      #headline
+    >
+      <SectionLabel
+        :text="block.headline"
+        :index="index"
+      />
+    </template>
+
     <EntryList
       v-if="entries.length"
       :entries="entries"
@@ -33,7 +43,7 @@ const viewAll = computed(() => toButton(props.block.link))
 
     <div
       v-if="viewAll?.label"
-      class="flex justify-center"
+      class="reveal"
     >
       <UButton
         v-bind="viewAll"

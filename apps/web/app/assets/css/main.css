@@ -40,6 +40,142 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
   }
+
+  ::selection {
+    background-color: var(--ui-primary);
+    color: var(--ui-bg);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Motion
+ *
+ * Swiss restraint: the hero speaks, everything else settles in calmly. Scroll
+ * effects use CSS scroll-driven animations (no JavaScript, runs off the main
+ * thread). Browsers without support, and visitors who prefer reduced motion,
+ * get the content without animation. Only transform, opacity and clip-path move.
+ * ------------------------------------------------------------------------- */
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(2.5rem); }
+}
+
+@keyframes reveal-wipe {
+  from { clip-path: inset(0 0 100% 0); }
+}
+
+@keyframes parallax {
+  from { transform: scale(1.12) translateY(-3%); }
+  to { transform: scale(1.04) translateY(3%); }
+}
+
+@keyframes intro-up {
+  from { opacity: 0; transform: translateY(1.5rem); }
+}
+
+@keyframes intro-mask {
+  from { clip-path: inset(0 0 100% 0); transform: translateY(35%); }
+}
+
+@keyframes scroll-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Fades and rises as it scrolls into view. Set --reveal-index to stagger items in a row */
+@utility reveal {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: reveal-up cubic-bezier(0.2, 0.7, 0.2, 1) both;
+      animation-timeline: view();
+      animation-range: entry calc(var(--reveal-index, 0) * 6%) entry calc(85% + var(--reveal-index, 0) * 6%);
+    }
+  }
+}
+
+/* Uncovers an image from the top as it scrolls into view */
+@utility reveal-wipe {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: reveal-wipe cubic-bezier(0.65, 0, 0.35, 1) both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 35%;
+    }
+  }
+}
+
+/* Slow drift of a media element inside an overflow-hidden frame */
+@utility parallax {
+  transform: scale(1.04);
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: parallax linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+  }
+}
+
+/* First paint of the hero: text rises in order. Set --intro-index for the sequence */
+@utility intro {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: intro-up 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(150ms + var(--intro-index, 0) * 110ms);
+  }
+}
+
+/* Headline lines slide up out of a mask */
+@utility intro-mask {
+  display: block;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: intro-mask 1100ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 60ms;
+  }
+}
+
+/* Reading progress, driven by the page scroll. Hidden where unsupported */
+@utility scroll-progress {
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+
+  @supports (animation-timeline: scroll()) {
+    animation: scroll-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+/* Underline that draws in from the left on hover */
+@utility link-underline {
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  transition: background-size 350ms cubic-bezier(0.65, 0, 0.35, 1);
+
+  &:hover, &:focus-visible {
+    background-size: 100% 1px;
+  }
+}
+
+/* Page transitions (app.pageTransition in nuxt.config.ts) */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(0.75rem);
+}
+
+.page-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active {
+    transition: none;
+  }
 }
 
 /* Code blocks highlighted by Shiki (server/api/highlight.post.ts) */

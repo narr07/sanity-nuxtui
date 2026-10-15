@@ -44,6 +44,10 @@ usePageSeo(() => ({
       <UPageHeader
         :title="collection.title"
         :description="collection.description ?? undefined"
+        :ui="{
+          title: 'intro text-5xl sm:text-7xl',
+          description: 'intro [--intro-index:1]'
+        }"
       />
 
       <UPageBody :class="collection.blocks?.length ? 'pb-0' : undefined">

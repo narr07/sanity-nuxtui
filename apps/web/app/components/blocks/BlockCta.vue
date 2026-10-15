@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <UPageSection>
+  <UPageSection :ui="{ container: 'py-12 sm:py-16 lg:py-20' }">
     <UPageCTA
       :title="block.title"
       :description="block.description"
@@ -17,17 +17,21 @@ defineProps<{
       :variant="stegaClean(block.variant) ?? 'subtle'"
       :orientation="stegaClean(block.orientation) ?? 'vertical'"
       :reverse="block.reverse"
+      class="reveal"
+      :ui="{ title: 'reveal' }"
     >
       <template
         v-if="block.image?.asset"
         #default
       >
-        <AppImage
-          :image="block.image"
-          :width="640"
-          sizes="100vw lg:50vw"
-          class="h-auto w-full rounded-lg"
-        />
+        <div class="reveal-wipe overflow-hidden">
+          <AppImage
+            :image="block.image"
+            :width="800"
+            sizes="100vw lg:50vw"
+            class="parallax h-auto w-full"
+          />
+        </div>
       </template>
     </UPageCTA>
   </UPageSection>

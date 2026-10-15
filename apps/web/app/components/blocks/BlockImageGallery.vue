@@ -11,10 +11,20 @@ defineProps<{
 <template>
   <UPageSection
     :id="stegaClean(block.anchor)"
-    :headline="block.headline"
     :title="block.title"
     :description="block.description"
+    :ui="sectionUi"
   >
+    <template
+      v-if="block.headline"
+      #headline
+    >
+      <SectionLabel
+        :text="block.headline"
+        :index="index"
+      />
+    </template>
+
     <ImageGrid
       :images="block.images"
       :layout="stegaClean(block.layout) ?? 'grid'"
