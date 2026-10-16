@@ -8,7 +8,7 @@ A block-based website builder. Editors compose pages from blocks in **Sanity Stu
 - **Site settings**: logo, navigation, header buttons, footer columns and social links, all editable
 - **Visual Editing**: click any text in the Presentation tool to edit it, with live draft preview
 - **Site search**: a search palette (Ctrl/⌘ + K) over pages, collections and entries, ranked by Sanity, in the language being viewed
-- **Multiple languages, optional**: switch them on in Site Settings. Each page, collection and entry is translated as its own document, URLs get a language prefix (`/id/about`), and the site adds a language switcher, hreflang links and a multilingual sitemap
+- **Multiple languages, optional**: switch them on in Site Settings. Each page, collection and entry is translated as its own document, URLs get a language prefix (`/id/about`), and the site adds a language switcher (Nuxt UI LocaleSelect), hreflang links and a multilingual sitemap
 - **Images** through [Nuxt Image](https://image.nuxt.com/providers/sanity) and the Sanity CDN: responsive `srcset`, Studio crop and hotspot, and a pixelated placeholder while loading
 - **Code blocks** like the Nuxt UI docs: syntax highlighting, file icons, copy button, highlighted lines and tabbed code groups
 - **SEO** with [Nuxt SEO](https://nuxtseo.com): sitemap from your content, robots.txt, schema.org, and **OG images generated in your theme** for pages without an image

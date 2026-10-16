@@ -83,9 +83,6 @@ const footerColumns = computed<FooterColumn[]>(() => (settings.value?.footerColu
   })
 })))
 
-// Many languages fit better in a dropdown than side by side
-const switcherVariant = computed(() => (languageConfig.value.languages.length > 3 ? 'menu' : 'list'))
-
 useHead({
   link: [{ rel: 'icon', href: '/favicon.ico' }]
 })
@@ -141,10 +138,7 @@ watchEffect(() => {
           v-if="settings?.search"
           :collapsed="true"
         />
-        <LanguageSwitcher
-          :variant="switcherVariant"
-          class="hidden sm:flex"
-        />
+        <LanguageSwitcher class="hidden sm:flex" />
         <UColorModeButton />
         <UButton
           v-for="link in toButtons(settings?.headerLinks)"
@@ -161,7 +155,7 @@ watchEffect(() => {
           orientation="vertical"
           class="-mx-2.5"
         />
-        <LanguageSwitcher class="mt-4 -mx-1.5" />
+        <LanguageSwitcher class="mt-4 w-full" />
         <div
           v-if="settings?.headerLinks?.length"
           class="mt-4 flex flex-col gap-2"
