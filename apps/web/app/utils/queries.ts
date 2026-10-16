@@ -107,6 +107,7 @@ const ENTRY_CARD = /* groq */ `{
   "imageCount": count(images),
   tags,
   order,
+  group,
   authors[]->${AUTHOR}
 }` as const
 
@@ -135,6 +136,7 @@ const BLOCKS = /* groq */ `{
 // One query per URL: /<path> is a page or a collection, /<parent>/<child> may be
 // an entry. Pages win when a page and an entry share a path. $path is the URL
 // without the language prefix. `language` tells a fallback (site language) apart.
+// `docs` lists every entry of a docs-layout collection (sidebar, previous/next).
 export const ROUTE_QUERY = defineQuery(`{
   "page": (${find('page', 'slug.current == $path')}){
     _id,
@@ -168,6 +170,7 @@ export const ROUTE_QUERY = defineQuery(`{
     "language": coalesce(language, $defaultLanguage),
     title,
     "slug": slug.current,
+    "path": ${VIEW_PATH},
     publishedAt,
     _updatedAt,
     excerpt,
@@ -177,7 +180,9 @@ export const ROUTE_QUERY = defineQuery(`{
     details,
     sections,
     seo,
-    "collection": collection->{ title, "slug": slug.current, "path": ${VIEW_PATH}, entryLabel, showRelated, tagFilter, toc, "translations": ${TRANSLATIONS} },
+    "collection": collection->{ title, "slug": slug.current, "path": ${VIEW_PATH}, layout, entryLabel, showRelated, tagFilter, toc, "translations": ${TRANSLATIONS} },
+    "docs": select(collection->layout == "docs" => *[_type == "entry" && collection._ref == ^.collection._ref && defined(slug.current) && ${SAME_LANGUAGE}]
+      | order(coalesce(order, 9999) asc, title asc){ _id, title, excerpt, group, "path": ${VIEW_PATH} }),
     authors[]->${AUTHOR},
     body[]${BODY},
     blocks[]${BLOCKS},

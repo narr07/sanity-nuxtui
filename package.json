@@ -11,6 +11,7 @@
     "lint": "pnpm --filter web lint",
     "typecheck": "pnpm --filter web typecheck",
     "seed": "pnpm --filter studio seed",
+    "docs:import": "pnpm --filter studio docs:import",
     "deploy:studio": "pnpm --filter studio run deploy",
     "generate": "pnpm --filter web generate"
   },

@@ -9,6 +9,7 @@ import { featureItem } from './objects/feature-item'
 import { link } from './objects/link'
 import { pageBuilder } from './objects/page-builder'
 import { seo } from './objects/seo'
+import { table } from './objects/table'
 import { callout } from './blocks/callout'
 import { cardGrid } from './blocks/card-grid'
 import { collectionList } from './blocks/collection-list'
@@ -37,6 +38,7 @@ export const schemaTypes = [
   link,
   pageBuilder,
   seo,
+  table,
   // Page builder blocks
   callout,
   cardGrid,

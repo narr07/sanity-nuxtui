@@ -3,7 +3,8 @@
 A block-based website builder. Editors compose pages from blocks in **Sanity Studio**; the **Nuxt** site renders every block with **Nuxt UI** components.
 
 - **13 page-builder blocks**: hero, features, card grid, timeline, image gallery, rich text, testimonials, FAQ, pricing, call to action, callout, logo cloud and collection list
-- **Collections created in the Studio, no code needed**: Blog, Gallery, Projects, Services, Team… Each collection gets a list page (`/projects`) and entry pages (`/projects/<slug>`), with a blog, cards or gallery layout, sorting, tag filtering and related entries
+- **Collections created in the Studio, no code needed**: Blog, Gallery, Projects, Services, Team… Each collection gets a list page (`/projects`) and entry pages (`/projects/<slug>`), with a blog, cards, gallery or docs layout, sorting, tag filtering and related entries
+- **Docs layout**: a sidebar grouped by topic, a table of contents and previous/next links. The template's own guides use it, imported from Markdown
 - **Flexible entries**: rich text, photo galleries with a lightbox, key details (Client, Year, …), authors, tags and page-builder blocks, all optional
 - **Site settings**: logo, navigation, header buttons, footer columns and social links, all editable
 - **Visual Editing**: click any text in the Presentation tool to edit it, with live draft preview
@@ -22,7 +23,7 @@ apps/
 └─ web/      Nuxt 4 + Nuxt UI 4: block components, pages, SEO
 ```
 
-> New to the Studio? Read the [editor guide](docs/editor-guide.md).
+> **Documentation**: guides for editors and developers live in [`docs/`](docs/README.md) and on the example site at [/docs](https://sanity-nuxtui.vercel.app/docs). This README is the short version.
 
 ## Quick start
 
@@ -131,7 +132,7 @@ Field names and option values match the Nuxt UI props (`orientation`, `variant`,
 Any Nuxt UI component can become a block.
 
 1. **Schema**: create `apps/studio/schemaTypes/blocks/<name>.ts`, then register it in `schemaTypes/index.ts` and in `objects/page-builder.ts` (also pick an insert-menu group there).
-2. **Query** (only when the block has references or links): add a projection for it in `apps/web/app/utils/queries.ts` → `PAGE_QUERY`.
+2. **Query** (only when the block has references, links or images): add a branch for it to `BLOCKS` in `apps/web/app/utils/queries.ts`.
 3. **Types**: run `pnpm typegen`.
 4. **Component**: create `apps/web/app/components/blocks/Block<Name>.vue`:
 
@@ -258,6 +259,7 @@ Run from the repository root.
 | `pnpm generate`         | Build the site as static files (`NUXT_RENDER_MODE=static`)    |
 | `pnpm typegen`          | Extract the schema and regenerate `apps/web/sanity.types.ts`  |
 | `pnpm seed`             | Add example content (`--replace` to start over)               |
+| `pnpm docs:import`      | Import the Markdown guides in `docs/` into the Docs collection |
 | `pnpm deploy:studio`    | Deploy Studio to `<name>.sanity.studio`                       |
 | `pnpm lint`             | ESLint for the site                                           |
 | `pnpm typecheck`        | Type-check the site                                           |
@@ -361,7 +363,7 @@ apps/studio
 │  ├─ blocks/         one file per page-builder block
 │  └─ shared/         reusable field helpers (icon, image, orientation, …)
 ├─ presentation/      where each document type appears on the site
-├─ scripts/seed.ts    example content
+├─ scripts/          seed.ts (example content), docs.ts (Markdown guides → Docs)
 ├─ structure.ts       Studio menu (Collections → entries)
 └─ sanity.config.ts
 

@@ -48,6 +48,7 @@ export const blockContent = defineType({
     // Syntax-highlighted code with a file name and a copy button on the site
     defineArrayMember({ type: 'code', title: 'Code', options: codeOptions }),
     // Several code blocks as tabs
-    defineArrayMember({ type: 'codeGroup' })
+    defineArrayMember({ type: 'codeGroup' }),
+    defineArrayMember({ type: 'table' })
   ]
 })

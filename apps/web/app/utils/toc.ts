@@ -23,7 +23,7 @@ export interface Heading {
   depth: 2 | 3
 }
 
-function slugify(text: string) {
+export function slugify(text: string) {
   return text
     .toLowerCase()
     .normalize('NFKD')

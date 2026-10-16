@@ -62,7 +62,8 @@ export const collection = defineType({
         list: [
           { title: 'Blog: date, excerpt, authors', value: 'blog' },
           { title: 'Cards: cover image and excerpt', value: 'cards' },
-          { title: 'Gallery: photo tiles with photo count', value: 'gallery' }
+          { title: 'Gallery: photo tiles with photo count', value: 'gallery' },
+          { title: 'Docs: sidebar navigation by group, table of contents, previous/next links', value: 'docs' }
         ],
         layout: 'radio'
       },

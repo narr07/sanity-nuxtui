@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { h, type FunctionalComponent } from 'vue'
 import { stegaClean } from '@sanity/client/stega'
-import { ProseCodeGroup, ProseH2, ProseH3, SanityContent, UAlert, ULink } from '#components'
+import { ProseCodeGroup, ProseH2, ProseH3, ProseTable, ProseTbody, ProseTd, ProseTh, ProseThead, ProseTr, SanityContent, UAlert, ULink } from '#components'
 import AppImage from '~/components/AppImage.vue'
 import CodeBlock from '~/components/CodeBlock.vue'
 import type { SanityLink } from '~/types/sanity'
@@ -41,6 +41,15 @@ function codeProps(value: CodeValue) {
     label: value.language,
     highlightedLines: value.highlightedLines
   }
+}
+
+// Table cells are plain text: `code` and **bold** become inline elements
+function cell(text: string) {
+  return text.split(/(`[^`]+`|\*\*[^*]+\*\*)/g).filter(Boolean).map((part) => {
+    if (part.startsWith('`')) return h('code', { class: 'rounded-md bg-elevated px-1.5 py-0.5 font-mono text-sm' }, part.slice(1, -1))
+    if (part.startsWith('**')) return h('strong', { class: 'font-semibold text-highlighted' }, part.slice(2, -2))
+    return part
+  })
 }
 
 // Renders a tag with semantic Nuxt UI classes, so text follows the theme and dark mode
@@ -99,6 +108,14 @@ const components: PortableTextComponents = {
     }),
     // @sanity/code-input → ProsePre with file icon, copy button and highlighting
     code: ({ value }: { value: CodeValue }) => h(CodeBlock, codeProps(value)),
+    // First row → header, the rest → body (Nuxt UI prose table)
+    table: ({ value }: { value: { rows?: { _key?: string, cells?: string[] }[] } }) => {
+      const [head, ...rows] = value.rows ?? []
+      return h(ProseTable, null, () => [
+        h(ProseThead, null, () => h(ProseTr, null, () => (head?.cells ?? []).map(text => h(ProseTh, null, () => cell(text))))),
+        h(ProseTbody, null, () => rows.map(row => h(ProseTr, { key: row._key }, () => (row.cells ?? []).map(text => h(ProseTd, null, () => cell(text))))))
+      ])
+    },
     // Several code blocks → ProseCodeGroup tabs, labelled by file name
     codeGroup: ({ value }: { value: { tabs?: CodeValue[] } }) => h(
       ProseCodeGroup,

@@ -22,6 +22,16 @@ function blogImage(entry: EntryCard) {
   return sanityImgProps(entry.cover, { width: 800, height: 450, sizes: '100vw sm:50vw lg:33vw' })
 }
 
+// Docs layout: entries under their sidebar group, in list order
+const groups = computed(() => {
+  const map = new Map<string, EntryCard[]>()
+  for (const entry of props.entries) {
+    const group = stegaClean(entry.group) || ''
+    map.set(group, [...(map.get(group) ?? []), entry])
+  }
+  return [...map].map(([title, items]) => ({ title, items }))
+})
+
 function authors(entry: EntryCard) {
   return entry.authors?.map(author => ({
     name: author.name,
@@ -83,6 +93,36 @@ function authors(entry: EntryCard) {
       </div>
     </NuxtLink>
   </UPageGrid>
+
+  <div
+    v-else-if="layout === 'docs'"
+    class="flex flex-col gap-16"
+  >
+    <section
+      v-for="group in groups"
+      :id="group.title ? slugify(group.title) : undefined"
+      :key="group.title"
+    >
+      <h2
+        v-if="group.title"
+        class="reveal mb-6 border-t border-default pt-6 font-heading text-2xl font-semibold tracking-tight text-highlighted"
+      >
+        {{ group.title }}
+      </h2>
+      <UPageGrid>
+        <UPageCard
+          v-for="(entry, index) in group.items"
+          :key="entry._id"
+          :title="entry.title"
+          :description="entry.excerpt ?? undefined"
+          :to="stegaClean(entry.path) ?? undefined"
+          variant="subtle"
+          class="reveal"
+          :style="revealIndex(index)"
+        />
+      </UPageGrid>
+    </section>
+  </div>
 
   <UPageGrid
     v-else

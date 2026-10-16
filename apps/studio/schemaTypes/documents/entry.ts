@@ -169,6 +169,13 @@ export const entry = defineType({
       group: 'meta',
       description: 'Only used when the collection sorts by manual order. Lower numbers come first.'
     }),
+    defineField({
+      name: 'group',
+      title: 'Sidebar group',
+      type: 'string',
+      group: 'meta',
+      description: 'Docs layout: entries with the same group are listed together in the sidebar, e.g. "Get started" or "Developer guide".'
+    }),
     defineField({ name: 'seo', title: 'SEO', type: 'seo', group: 'seo' })
   ],
   orderings: [

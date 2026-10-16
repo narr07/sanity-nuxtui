@@ -7,7 +7,8 @@
     "build": "sanity build",
     "deploy": "sanity deploy",
     "typegen": "sanity schema extract --force --enforce-required-fields && sanity typegen generate",
-    "seed": "sanity exec scripts/seed.ts --with-user-token --"
+    "seed": "sanity exec scripts/seed.ts --with-user-token --",
+    "docs:import": "sanity exec scripts/docs.ts --with-user-token --"
   },
   "dependencies": {
     "@sanity/code-input": "^7.3.12",
@@ -21,8 +22,11 @@
     "styled-components": "^6.6.0"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.2.0",
     "@types/node": "^24.19.2",
     "@types/react": "^19.2.0",
-    "typescript": "^6.0.3"
+    "markdown-it": "^14.3.2",
+    "typescript": "^6.0.3",
+    "yaml": "^2.9.1"
   }
 }

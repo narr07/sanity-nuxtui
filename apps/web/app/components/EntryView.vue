@@ -26,6 +26,36 @@ const toc = computed(() => {
   return headings.length >= 2 ? getTocLinks(headings) : []
 })
 const collectionPath = computed(() => stegaClean(props.entry.collection?.path) ?? '/')
+
+// Docs layout: a sidebar with every entry of the collection by group, and
+// previous/next links in the same order. Same shape as ContentNavigationItem
+// from @nuxt/content, which UContentNavigation and UContentSurround expect.
+interface DocLink {
+  title: string
+  path: string
+  description?: string
+  children?: DocLink[]
+}
+
+const isDocs = computed(() => stegaClean(props.entry.collection?.layout) === 'docs')
+const docs = computed(() => (props.entry.docs ?? []).map(doc => ({
+  title: doc.title ?? '',
+  path: stegaClean(doc.path) ?? '',
+  description: doc.excerpt ?? undefined,
+  group: stegaClean(doc.group) || undefined
+})))
+const docsNavigation = computed<DocLink[]>(() => {
+  const groups = new Map<string | undefined, typeof docs.value>()
+  for (const doc of docs.value) groups.set(doc.group, [...(groups.get(doc.group) ?? []), doc])
+  return [...groups].flatMap(([group, items]): DocLink[] => group
+    ? [{ title: group, path: `${collectionPath.value}#${slugify(group)}`, children: items }]
+    : items)
+})
+// [previous, next]; null at either end, which UContentSurround leaves empty
+const docsSurround = computed(() => {
+  const index = docs.value.findIndex(doc => doc.path === stegaClean(props.entry.path))
+  return (index === -1 ? [] : [docs.value[index - 1] ?? null, docs.value[index + 1] ?? null]) as DocLink[]
+})
 const relatedLabel = computed(() => t('relatedEntries', {
   entries: plural((stegaClean(props.entry.collection?.entryLabel) || 'Entry').toLowerCase())
 }))
@@ -66,7 +96,7 @@ useSchemaOrg([
           :description="entry.excerpt ?? undefined"
           :ui="{
             headline: 'intro',
-            title: 'intro [--intro-index:1] text-4xl sm:text-6xl',
+            title: ['intro [--intro-index:1]', isDocs ? 'text-3xl sm:text-5xl' : 'text-4xl sm:text-6xl'],
             description: 'intro [--intro-index:2]'
           }"
         >
@@ -79,7 +109,7 @@ useSchemaOrg([
               variant="link"
               class="-ms-1.5 p-0"
             />
-            <template v-if="entry.publishedAt">
+            <template v-if="entry.publishedAt && !isDocs">
               <span class="text-muted">·</span>
               <time
                 :datetime="stegaClean(entry.publishedAt)"
@@ -103,6 +133,30 @@ useSchemaOrg([
         </UPageHeader>
 
         <UPageBody>
+          <!-- Docs navigation on small screens, where the sidebar is hidden -->
+          <UCollapsible
+            v-if="isDocs"
+            class="border-y border-default lg:hidden"
+          >
+            <UButton
+              :label="entry.collection?.title ?? ''"
+              icon="i-lucide-menu"
+              trailing-icon="i-lucide-chevron-down"
+              color="neutral"
+              variant="link"
+              block
+              class="justify-start px-0 py-3"
+              :ui="{ trailingIcon: 'ms-auto group-data-[state=open]:rotate-180 transition-transform' }"
+            />
+            <template #content>
+              <UContentNavigation
+                :navigation="docsNavigation"
+                highlight
+                class="pb-4"
+              />
+            </template>
+          </UCollapsible>
+
           <AppImage
             v-if="entry.coverImage?.asset"
             :image="entry.coverImage"
@@ -141,7 +195,8 @@ useSchemaOrg([
 
           <div
             v-if="uses('body') && entry.body?.length"
-            class="mx-auto w-full max-w-3xl"
+            class="w-full"
+            :class="isDocs ? undefined : 'mx-auto max-w-3xl'"
           >
             <PortableText :value="entry.body" />
           </div>
@@ -166,7 +221,23 @@ useSchemaOrg([
               variant="subtle"
             />
           </div>
+          <template v-if="isDocs && docsSurround.length">
+            <USeparator />
+            <UContentSurround :surround="docsSurround" />
+          </template>
         </UPageBody>
+
+        <template
+          v-if="isDocs"
+          #left
+        >
+          <UPageAside>
+            <UContentNavigation
+              :navigation="docsNavigation"
+              highlight
+            />
+          </UPageAside>
+        </template>
 
         <template
           v-if="toc.length"

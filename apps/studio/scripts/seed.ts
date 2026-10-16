@@ -1,6 +1,7 @@
 /**
  * Fills a dataset with example content: site settings, pages that use every
- * block, and three collections (Blog, Gallery, Projects) with entries and authors.
+ * block, three collections (Blog, Gallery, Projects) with entries and authors,
+ * and the guides from /docs as a Docs collection (see scripts/docs.ts).
  *
  *   pnpm seed              # refuses to run when content already exists
  *   pnpm seed --replace    # deletes existing pages, collections, entries,
@@ -11,7 +12,9 @@
  * returned when each document is created.
  */
 import { randomUUID } from 'node:crypto'
+import { resolve } from 'node:path'
 import { getCliClient } from 'sanity/cli'
+import { importDocs } from './lib/docs'
 
 const client = getCliClient({ apiVersion: '2026-10-01' })
 const replace = process.argv.includes('--replace')
@@ -740,6 +743,10 @@ defineProps<{ block: BlockOf<'stats'>, index: number }>()
     ]
   })
 
+  // Docs --------------------------------------------------------------------
+  console.log('Docs')
+  const docs = await importDocs(client, resolve(process.cwd(), '../../docs'))
+
   // Settings ----------------------------------------------------------------
   console.log('Settings')
   await client.createOrReplace({
@@ -755,7 +762,8 @@ defineProps<{ block: BlockOf<'stats'>, index: number }>()
       internal('Projects', projects, { variant: 'link' }),
       internal('Blog', blog, { variant: 'link' }),
       internal('Gallery', gallery, { variant: 'link' }),
-      internal('Pricing', pricing, { variant: 'link' })
+      internal('Pricing', pricing, { variant: 'link' }),
+      internal('Docs', docs, { variant: 'link' })
     ],
     headerLinks: [internal('Contact', contact, { trailingIcon: 'i-lucide-arrow-right' })],
     footerColumns: [
