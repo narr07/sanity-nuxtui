@@ -11,9 +11,9 @@ The template ships a Swiss-style theme: a strict grid, large tight headings, squ
 
 ## Colors
 
-`apps/web/app/app.config.ts` maps Nuxt UI's semantic colors to palettes:
+`frontend/app/app.config.ts` maps Nuxt UI's semantic colors to palettes:
 
-```ts [apps/web/app/app.config.ts]
+```ts [frontend/app/app.config.ts]
 export default defineAppConfig({
   ui: {
     colors: {

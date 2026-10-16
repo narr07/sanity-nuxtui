@@ -7,7 +7,7 @@ order: 305
 
 # Queries and types
 
-All GROQ lives in `apps/web/app/utils/queries.ts`. Each query is wrapped in `defineQuery()`, which lets Sanity TypeGen find it and generate the type of its result.
+All GROQ lives in `frontend/app/utils/queries.ts`. Each query is wrapped in `defineQuery()`, which lets Sanity TypeGen find it and generate the type of its result.
 
 | Query | Used by | Returns |
 | --- | --- | --- |
@@ -35,10 +35,10 @@ Queries are assembled from fragments, so a change in one place applies everywher
 After changing a schema or a query, run:
 
 ```sh
-pnpm typegen
+npm run typegen
 ```
 
-It extracts the Studio schema to `apps/studio/schema.json` and writes `apps/web/sanity.types.ts`, with a type per schema type and a `<NAME>_RESULT` type per query. `app/types/sanity.ts` derives the handy ones: `PageData`, `EntryData`, `EntryCard`, `BlockOf<'hero'>`.
+It extracts the Studio schema to `studio/schema.json` and writes `frontend/sanity.types.ts`, with a type per schema type and a `<NAME>_RESULT` type per query. `app/types/sanity.ts` derives the handy ones: `PageData`, `EntryData`, `EntryCard`, `BlockOf<'hero'>`.
 
 ## Fetching
 

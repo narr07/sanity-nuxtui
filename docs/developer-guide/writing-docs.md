@@ -7,7 +7,7 @@ order: 313
 
 # Writing these docs
 
-The guides you are reading live as Markdown files in the `docs/` folder of the repository, readable on GitHub. `pnpm docs:import` turns them into entries of a **Docs** collection with the docs layout, served at `/docs`. `pnpm seed` runs the same import.
+The guides you are reading live as Markdown files in the `docs/` folder of the repository, readable on GitHub. `npm run docs:import` turns them into entries of a **Docs** collection with the docs layout, served at `/docs`. `npm run seed` runs the same import.
 
 ## Add or change a guide
 
@@ -26,10 +26,10 @@ The guides you are reading live as Markdown files in the `docs/` folder of the r
 3. Run the import:
 
    ```sh
-   pnpm docs:import
+   npm run docs:import
    ```
 
-Running it again updates the entries with the same slug. `pnpm docs:import --prune` also deletes entries whose file was removed. After an import, the entries can still be edited in the Studio, but the next import overwrites them, so keep the files as the source.
+Running it again updates the entries with the same slug. `npm run docs:import -- --prune` also deletes entries whose file was removed. After an import, the entries can still be edited in the Studio, but the next import overwrites them, so keep the files as the source.
 
 ## Supported Markdown
 
@@ -43,7 +43,7 @@ Running it again updates the entries with the same slug. `pnpm docs:import --pru
 | `> [!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]` | A callout; a **bold** first sentence becomes its title |
 | Tables | A table |
 
-The converter is `apps/studio/scripts/lib/markdown.ts`; the importer is `apps/studio/scripts/lib/docs.ts`.
+The converter is `studio/scripts/lib/markdown.ts`; the importer is `studio/scripts/lib/docs.ts`.
 
 ## The docs layout
 

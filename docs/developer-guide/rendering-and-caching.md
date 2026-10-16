@@ -13,13 +13,13 @@ Pick one with `NUXT_RENDER_MODE` at build time:
 
 | Mode | Build | Content changes appear | Needs a server |
 | --- | --- | --- | --- |
-| `ssr` (default) | `pnpm build` | within `NUXT_CACHE_TTL` seconds (default 60) | yes |
-| `hybrid` | `NUXT_RENDER_MODE=hybrid pnpm build` | new pages right away, edits after a rebuild | yes |
-| `static` | `pnpm generate` | after a rebuild | no |
+| `ssr` (default) | `npm run build` | within `NUXT_CACHE_TTL` seconds (default 60) | yes |
+| `hybrid` | `NUXT_RENDER_MODE=hybrid npm run build` | new pages right away, edits after a rebuild | yes |
+| `static` | `npm run generate` | after a rebuild | no |
 
 - **ssr** renders on demand and caches the result. The best default.
 - **hybrid** prerenders every page, collection and entry at build time and serves them as static files. The server still renders pages added after the build, social images and previews.
-- **static** prerenders everything into `apps/web/.output/public`, including social images, the sitemap and the data for client-side navigation. Upload that folder to any static host. Visual Editing needs a separate `ssr` deployment.
+- **static** prerenders everything into `frontend/.output/public`, including social images, the sitemap and the data for client-side navigation. Upload that folder to any static host. Visual Editing needs a separate `ssr` deployment.
 
 The list of URLs to prerender comes from Sanity (`prerender-routes.ts`), in every language, because the crawler only finds pages something links to.
 

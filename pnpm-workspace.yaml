@@ -1,5 +1,6 @@
 packages:
-  - apps/*
+  - studio
+  - frontend
 
 allowBuilds:
   '@parcel/watcher': false

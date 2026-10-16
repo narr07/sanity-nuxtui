@@ -3,8 +3,8 @@
  * block, three collections (Blog, Gallery, Projects) with entries and authors,
  * and the guides from /docs as a Docs collection (see scripts/docs.ts).
  *
- *   pnpm seed              # refuses to run when content already exists
- *   pnpm seed --replace    # deletes existing pages, collections, entries,
+ *   npm run seed              # refuses to run when content already exists
+ *   npm run seed -- --replace    # deletes existing pages, collections, entries,
  *                          # authors and settings first
  *
  * Photos are downloaded from picsum.photos (Unsplash license) and uploaded to
@@ -131,7 +131,7 @@ async function clearExisting() {
   if (!ids.length) return
   if (!replace) {
     console.error(`The dataset already has ${ids.length} documents of type ${CONTENT_TYPES.join(', ')}.`)
-    console.error('Run "pnpm seed --replace" to delete them and seed again.')
+    console.error('Run "npm run seed -- --replace" to delete them and seed again.')
     process.exit(1)
   }
   console.log(`Deleting ${ids.length} existing documents…`)
@@ -257,14 +257,14 @@ async function seed() {
       block('This template pairs **Sanity Studio** for editing with **Nuxt UI** for rendering. Editors build pages from blocks; every block is a Nuxt UI component on the site.'),
       h2('1. Connect your project'),
       block('Copy the example env files and fill in your project ID from [sanity.io/manage](https://www.sanity.io/manage).'),
-      code('terminal', 'cp apps/studio/.env.example apps/studio/.env\ncp apps/web/.env.example apps/web/.env', 'sh'),
+      code('terminal', 'cp studio/.env.example studio/.env\ncp frontend/.env.example frontend/.env', 'sh'),
       h2('2. Add example content'),
       block('The seed script creates pages, three collections (Blog, Gallery, Projects) with entries, and authors, so you can see every block in action.'),
-      code('terminal', 'pnpm install\npnpm --filter studio exec sanity login\npnpm seed', 'sh'),
-      callout('Already have content?', 'The seed script stops when the dataset already has content. Run "pnpm seed --replace" to delete it first.', 'warning', 'i-lucide-triangle-alert'),
+      code('terminal', 'npm install\nnpm run sanity -- login\nnpm run seed', 'sh'),
+      callout('Already have content?', 'The seed script stops when the dataset already has content. Run "npm run seed -- --replace" to delete it first.', 'warning', 'i-lucide-triangle-alert'),
       h2('3. Run it'),
       ...bullets([
-        '`pnpm dev` starts Studio on port 3333 and the site on port 3000.',
+        '`npm run dev` starts Studio on port 3333 and the site on port 3000.',
         'Edit a page in Studio, publish it, and refresh the site.',
         'Open the **Presentation** tool to edit with a live preview.'
       ])
@@ -284,9 +284,9 @@ async function seed() {
       block('Blocks live in two places: a schema in the Studio and a component in the Nuxt app. TypeScript keeps them in sync.'),
       h2('The four steps'),
       ...numbered([
-        'Create the schema in `apps/studio/schemaTypes/blocks/` and register it in `schemaTypes/index.ts` and `objects/page-builder.ts`.',
-        'Run `pnpm typegen` to regenerate the types used by the frontend.',
-        'Create `Block<Name>.vue` in `apps/web/app/components/blocks/` with a `block: BlockOf<\'name\'>` prop.',
+        'Create the schema in `studio/schemaTypes/blocks/` and register it in `schemaTypes/index.ts` and `objects/page-builder.ts`.',
+        'Run `npm run typegen` to regenerate the types used by the frontend.',
+        'Create `Block<Name>.vue` in `frontend/app/components/blocks/` with a `block: BlockOf<\'name\'>` prop.',
         'Add the component to the registry in `PageBlocks.vue`.'
       ]),
       h3('Example: a Stats block'),
@@ -356,7 +356,7 @@ defineProps<{ block: BlockOf<'stats'>, index: number }>()
       h2('Turn it on'),
       ...numbered([
         'Create a token with the *Viewer* role in sanity.io/manage → API → Tokens.',
-        'Add it to `apps/web/.env` as `NUXT_SANITY_API_READ_TOKEN`.',
+        'Add it to `frontend/.env` as `NUXT_SANITY_API_READ_TOKEN`.',
         'Restart the site and open Presentation in Studio.'
       ]),
       block('Blocks can be reordered by dragging them in the preview, because every block carries a `data-sanity` attribute.'),
@@ -745,7 +745,7 @@ defineProps<{ block: BlockOf<'stats'>, index: number }>()
 
   // Docs --------------------------------------------------------------------
   console.log('Docs')
-  const docs = await importDocs(client, resolve(process.cwd(), '../../docs'))
+  const docs = await importDocs(client, resolve(process.cwd(), '../docs'))
 
   // Settings ----------------------------------------------------------------
   console.log('Settings')
@@ -777,7 +777,7 @@ defineProps<{ block: BlockOf<'stats'>, index: number }>()
   })
   console.log('  created settings')
 
-  console.log('\nDone. Open Studio to edit the content, or run "pnpm dev" to see the site.')
+  console.log('\nDone. Open Studio to edit the content, or run "npm run dev" to see the site.')
 }
 
 seed().catch((error) => {

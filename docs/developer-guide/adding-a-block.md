@@ -11,9 +11,9 @@ A block is a schema in the Studio and a component on the site, connected by its 
 
 ## 1. Schema
 
-Create `apps/studio/schemaTypes/blocks/stats.ts`. Name fields after the props of the Nuxt UI component you will use: the component can then pass values straight through, and the Nuxt UI docs double as field documentation.
+Create `studio/schemaTypes/blocks/stats.ts`. Name fields after the props of the Nuxt UI component you will use: the component can then pass values straight through, and the Nuxt UI docs double as field documentation.
 
-```ts [apps/studio/schemaTypes/blocks/stats.ts]
+```ts [studio/schemaTypes/blocks/stats.ts]
 import { defineArrayMember, defineField, defineType } from 'sanity'
 import { ActivityIcon } from '@sanity/icons/Activity'
 import { anchorField, headerFields } from '../shared/fields'
@@ -48,7 +48,7 @@ export const stats = defineType({
 
 Add the type to `schemaTypes/index.ts`, then to the page builder in `schemaTypes/objects/page-builder.ts`, including a group of the insert menu:
 
-```ts [apps/studio/schemaTypes/objects/page-builder.ts]
+```ts [studio/schemaTypes/objects/page-builder.ts]
 of: [
   // …
   defineArrayMember({ type: 'stats' })
@@ -66,19 +66,19 @@ options: {
 ## 3. Generate the types
 
 ```sh
-pnpm typegen
+npm run typegen
 ```
 
-The block is now part of `PageBlock` in `apps/web/sanity.types.ts`, and `BlockOf<'stats'>` gives its exact type.
+The block is now part of `PageBlock` in `frontend/sanity.types.ts`, and `BlockOf<'stats'>` gives its exact type.
 
 > [!NOTE]
-> **Blocks with references need a projection.** When a block links to documents or uses images, add a branch for it in `BLOCKS` in `apps/web/app/utils/queries.ts` (see how `cardGrid` resolves `link` and `image`). Plain fields like the ones above come through `...` automatically.
+> **Blocks with references need a projection.** When a block links to documents or uses images, add a branch for it in `BLOCKS` in `frontend/app/utils/queries.ts` (see how `cardGrid` resolves `link` and `image`). Plain fields like the ones above come through `...` automatically.
 
 ## 4. Component
 
-Create `apps/web/app/components/blocks/BlockStats.vue`. Follow the pattern of the existing blocks: `SectionLabel` for the headline, `sectionUi` for the scroll-in animation, and `revealIndex()` to stagger items in a row.
+Create `frontend/app/components/blocks/BlockStats.vue`. Follow the pattern of the existing blocks: `SectionLabel` for the headline, `sectionUi` for the scroll-in animation, and `revealIndex()` to stagger items in a row.
 
-```vue [apps/web/app/components/blocks/BlockStats.vue]
+```vue [frontend/app/components/blocks/BlockStats.vue]
 <script setup lang="ts">
 import { stegaClean } from '@sanity/client/stega'
 import type { BlockOf } from '~/types/sanity'
@@ -113,9 +113,9 @@ defineProps<{ block: BlockOf<'stats'>, index: number }>()
 
 ## 5. Register the component
 
-Add it to the registry in `apps/web/app/components/PageBlocks.vue`:
+Add it to the registry in `frontend/app/components/PageBlocks.vue`:
 
-```ts [apps/web/app/components/PageBlocks.vue]
+```ts [frontend/app/components/PageBlocks.vue]
 const registry: Record<BlockType, Component> = {
   hero: LazyBlockHero,
   // …
@@ -123,7 +123,7 @@ const registry: Record<BlockType, Component> = {
 }
 ```
 
-The registry is typed as `Record<BlockType, Component>`, so `pnpm typecheck` fails until every block in the schema has a component. In development, a block without a component shows a warning on the page instead of breaking it.
+The registry is typed as `Record<BlockType, Component>`, so `npm run typecheck` fails until every block in the schema has a component. In development, a block without a component shows a warning on the page instead of breaking it.
 
 ## Clean values that drive logic
 

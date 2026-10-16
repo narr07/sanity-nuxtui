@@ -2,7 +2,7 @@ import { defineArrayMember, defineType } from 'sanity'
 
 // The blocks editors can add to a page. To add a new block: create its schema in
 // blocks/, register it here and in schemaTypes/index.ts, then create
-// Block<Name>.vue in apps/web/app/components/blocks/ and add it to PageBlocks.vue.
+// Block<Name>.vue in frontend/app/components/blocks/ and add it to PageBlocks.vue.
 export const pageBuilder = defineType({
   name: 'pageBuilder',
   title: 'Page blocks',

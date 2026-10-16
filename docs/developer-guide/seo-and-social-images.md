@@ -7,7 +7,7 @@ order: 310
 
 # SEO and social images
 
-SEO is handled by [Nuxt SEO](https://nuxtseo.com) (`@nuxtjs/seo`), configured in `apps/web/nuxt.config.ts`.
+SEO is handled by [Nuxt SEO](https://nuxtseo.com) (`@nuxtjs/seo`), configured in `frontend/nuxt.config.ts`.
 
 ## Site URL and name
 

@@ -12,8 +12,8 @@ export default defineCliConfig({
     autoUpdates: true
   },
   typegen: {
-    path: '../web/app/**/*.{ts,vue}',
+    path: '../frontend/app/**/*.{ts,vue}',
     schema: 'schema.json',
-    generates: '../web/sanity.types.ts'
+    generates: '../frontend/sanity.types.ts'
   }
 })

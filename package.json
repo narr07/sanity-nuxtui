@@ -2,18 +2,28 @@
   "name": "sanity-nuxtui",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "studio",
+    "frontend"
+  ],
   "scripts": {
-    "dev": "pnpm --parallel --filter web --filter studio dev",
-    "dev:web": "pnpm --filter web dev",
-    "dev:studio": "pnpm --filter studio dev",
-    "build": "pnpm --filter studio build && pnpm --filter web build",
-    "typegen": "pnpm --filter studio typegen",
-    "lint": "pnpm --filter web lint",
-    "typecheck": "pnpm --filter web typecheck",
-    "seed": "pnpm --filter studio seed",
-    "docs:import": "pnpm --filter studio docs:import",
-    "deploy:studio": "pnpm --filter studio run deploy",
-    "generate": "pnpm --filter web generate"
+    "dev": "concurrently --names studio,frontend --prefix-colors blue,green \"npm:dev:studio\" \"npm:dev:frontend\"",
+    "dev:studio": "npm --prefix studio run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix studio run build && npm --prefix frontend run build",
+    "generate": "npm --prefix frontend run generate",
+    "typegen": "npm --prefix studio run typegen",
+    "lint": "npm --prefix frontend run lint",
+    "typecheck": "npm --prefix frontend run typecheck",
+    "seed": "npm --prefix studio run seed --",
+    "docs:import": "npm --prefix studio run docs:import --",
+    "deploy:studio": "npm --prefix studio run deploy",
+    "sanity": "npm --prefix studio run sanity --",
+    "validate": "sanity-template-validate"
   },
-  "packageManager": "pnpm@12.4.2"
+  "packageManager": "pnpm@12.4.2",
+  "devDependencies": {
+    "@sanity/template-validator": "^3.1.1",
+    "concurrently": "^9.2.5"
+  }
 }

@@ -1,6 +1,6 @@
 # Docs
 
-Guides for the Sanity × Nuxt UI template. They are also published on the example site at `/docs`: `pnpm docs:import` turns these files into a Docs collection (see [Writing these docs](developer-guide/writing-docs.md)).
+Guides for the Sanity × Nuxt UI template. They are also published on the example site at `/docs`: `npm run docs:import` turns these files into a Docs collection (see [Writing these docs](developer-guide/writing-docs.md)).
 
 ## Get started
 
