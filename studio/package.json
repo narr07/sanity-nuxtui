@@ -29,5 +29,6 @@
     "markdown-it": "^14.3.2",
     "typescript": "^6.0.3",
     "yaml": "^2.9.1"
-  }
+  },
+  "packageManager": "pnpm@12.15.0"
 }

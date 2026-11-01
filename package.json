@@ -21,7 +21,7 @@
     "sanity": "npm --prefix studio run sanity --",
     "validate": "sanity-template-validate"
   },
-  "packageManager": "pnpm@12.4.2",
+  "packageManager": "pnpm@12.15.0",
   "devDependencies": {
     "@sanity/template-validator": "^3.1.1",
     "concurrently": "^9.2.5"
